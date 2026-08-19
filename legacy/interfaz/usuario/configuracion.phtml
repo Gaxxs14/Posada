@@ -1,0 +1,98 @@
+<!DOCTYPE HTML>
+<html lang="es">
+	<?php include "interfaz/usuario/layouts/parte_superior.php"?>
+    <link rel="stylesheet" href="interfaz/administrador/css/perfil.css">
+	<body class="landing is-preload">
+		<div id="page-wrapper">
+			<?php include "interfaz/usuario/layouts/header.php"?>
+			<!-- Principal -->
+				<section id="main" class="container">
+                    <form id="actualizar_perfil">
+                        <section class="seccion-perfil-usuario">
+                            <div class="perfil-usuario-header">
+                                <div class="perfil-usuario-portada">
+                                    <div class="perfil-usuario-avatar">
+                                        <img  src="./interfaz/administrador/img/undraw_profile.svg">  
+                                    </div>   
+                                </div>
+                            </div>
+                                <div class="perfil-usuario-body">
+                                    <div class="perfil-usuario-bio">
+                                        <h3 class="titulo" style="font-size: 17px; margin-top: 109px;">
+                                            <div class="form-group" style="padding: 0 200px;">
+                                                    <label><i class="icono fas fa-user"></i> Nombre</label>
+                                                <input type="text" class="form-control" id="nombre" placeholder="Nombre" value="<?php echo $_SESSION['usuario']['nombre'];?>">
+                                            </div>
+                                        </h3>
+                                    </div>
+                                    
+                                    <div class="perfil-usuario-footer">
+                                        <ul class="lista-datos" style="padding:25px;">
+                                            <li>
+                                                <div class="form-group">
+                                                    <label><i class="icono fas fa-user-check"></i> Nombre de usuario</label>
+                                                    <input type="text" class="form-control" id="usuario" placeholder="Nombre de usuario" value="<?php echo $_SESSION['usuario']['usuario'];?>">
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="form-group">
+                                                    <label><i class="icono fas fa-building"></i> Tipo</label>
+                                                    <select class="form-control" name="tipo" id="tipo">
+                                                        <!--<option value="Administrador" <?php //echo ($_SESSION['usuario']['tipo']=='Administrador')?'selected':'';?>>Administrador</option>-->
+                                                        <option value="Cliente" <?php echo ($_SESSION['usuario']['tipo']=='Cliente')?'selected':'';?>>Cliente</option>
+                                                    </select>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                        <ul class="lista-datos" style="padding:25px;">
+                                            <li>
+                                                <div class="form-group">
+                                                    <label><i class="icono fas fa-envelope"></i> Correo</label>
+                                                    <input type="email" class="form-control" id="correo" placeholder="Correo" value="<?php echo $_SESSION['usuario']['correo'];?>">
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="form-group">
+                                                <label><i class="icono fas fa-phone-alt"></i> Teléfono</label>
+                                                    <input type="text" class="form-control" id="telefono" placeholder="Teléfono" value="<?php echo $_SESSION['usuario']['telefono'];?>">
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                        </section>
+                        <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                            <button class="button" style="background-color: green;" id="btn_actualizar">Actualizar</button>
+                        </div>
+                    </form>
+				</section>
+                <script>
+                    var actualizar = $('#actualizar_perfil');
+                    actualizar.submit(function(e){
+                        var nombre   = $('#nombre').val();
+                        var usuario  = $('#usuario').val();
+                        var correo   = $('#correo').val();
+                        var telefono = $('#telefono').val();
+                        var tipo     = $('#tipo').val();
+                        actualizar.find('#btn_actualizar').text('Actualizando...');
+                        actualizar.find('button[type="submit"]').attr('disabled','true');
+                        e.preventDefault();
+                        $.ajax({
+                            url: "nucleo/accion/actualizar-perfil",
+                            type: "POST",
+                            dataType: "json",
+                            data: { nombre:nombre, usuario:usuario, correo:correo, telefono:telefono, tipo:tipo },
+                            success: function(data){
+                                alert("Actualización exitosa");
+                                window.location = "<?php echo URL;?>perfil";
+                                actualizar.find('#btn_actualizar').text('Actualizar');
+                                actualizar.find('button[type="submit"]').removeAttr('disabled');
+                            }
+                        });                                
+                    }); 
+                </script>
+			<?php include "interfaz/usuario/layouts/footer.php"?>
+		</div>
+		<?php include "interfaz/usuario/layouts/parte_inferior.php"?>
+	</body>
+</html>

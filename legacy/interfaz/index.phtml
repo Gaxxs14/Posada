@@ -1,0 +1,27 @@
+<?php if($lfmc['link'][0]=='nucleo' && $lfmc['link'][1]=='accion'){
+    require_once("nucleo/accion/{$lfmc['link'][2]}.php");
+}else{
+    if($_SESSION['usuario']!=NULL){
+        $tipo = ($_SESSION['usuario']['tipo']=='Administrador')?'administrador':'usuario';
+        if(!empty($lfmc['link'][0])){
+            if(file_exists("interfaz/$tipo/{$lfmc['link'][0]}.phtml")){
+                echo CargarPagina($lfmc['link'][0],$tipo);
+            }else{
+                require_once("interfaz/404.phtml");
+            }
+        }else{
+            echo CargarPagina('inicio',$tipo);
+        }
+    }else{
+        if(!empty($lfmc['link'][0])){
+            if(file_exists("interfaz/{$lfmc['link'][0]}.phtml")){
+                require_once("interfaz/{$lfmc['link'][0]}.phtml");
+            }else{
+                require_once("interfaz/404.phtml");
+            }
+        }else{
+            require_once("interfaz/inicio.phtml");
+        }
+    }
+}
+?>

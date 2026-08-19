@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Registro | Posada ABBAPapi</title> 
+	<meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1.0, maximum-scale=3.0, minimum-scale=1.0">
+	<link rel="stylesheet" href="interfaz/usuario/css/estilos.css">
+    <link rel="stylesheet" href="interfaz/usuario/assets/fontawesome-free/css/all.min.css" />
+    <link rel="icon" href="interfaz/usuario/images/logo.ico">	
+</head> 
+
+<body>
+	<form action="nucleo/accion/registro" method="POST" class="formulario">
+    <a href="inicio">
+        <img src="interfaz/usuario/images/logo.png">
+    </a>
+    <h1>Registrate</h1>
+    <hr>
+     <div class="contenedor">
+     
+     <div class="input-contenedor">
+         <i class="fas fa-user icon"></i>
+         <input type="text" placeholder="Nombre Completo" name="Nombre" required>
+         
+         </div>
+
+         <div class="input-contenedor">
+         <i class="fas fa-user icon"></i>
+         <input type="text" placeholder="Usuario" name="Usuario" required>
+         
+        </div>
+         
+         <div class="input-contenedor">
+         <i class="fas fa-envelope icon"></i>
+         <input type="email" placeholder="Correo" name="Correo" required>
+         
+         </div>
+         
+         <div class="input-contenedor">
+        <i class="fas fa-key icon"></i>
+         <input type="password" placeholder="Contraseña" name="Contrasena" required>
+         
+         </div>
+         <input type="submit" value="Registrate" class="button">
+         <p>Al registrarte, aceptas nuestras Condiciones de uso y Política de privacidad.</p>
+         <p>¿Ya tienes una cuenta? <a class="link" href="iniciar-sesion">Iniciar Sesion</a></p>
+     </div>
+    </form>
+</body>
+</html>

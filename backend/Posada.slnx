@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Posada.API/Posada.API.csproj" />
+    <Project Path="src/Posada.Application/Posada.Application.csproj" />
+    <Project Path="src/Posada.Domain/Posada.Domain.csproj" />
+    <Project Path="src/Posada.Infrastructure/Posada.Infrastructure.csproj" />
+  </Folder>
+</Solution>

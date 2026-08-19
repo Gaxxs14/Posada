@@ -1,0 +1,226 @@
+<?php include "interfaz/administrador/layouts/parte_superior.php"?>
+
+<?php include "interfaz/administrador/layouts/header.php"?>
+
+<?php include "interfaz/administrador/layouts/footer.php"?>
+
+<!--Inicio del contenido principal-->
+    <div class="container-fluid">
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-bed"></i> Lista de reservaciones pendientes</h1>
+        </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">        
+                    <table id="tablareservaciones" class="table table-striped table-bordered table-condensed" style="width:100%">
+                    <thead class="text-center">
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Teléfono</th>
+                            <th>Número de habitación</th>
+                            <th>Precio</th>
+                            <th>Entrada</th>
+                            <th>Salida</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $reservaciones = ObtenerTodos('reservaciones','Pendiente','estatus');
+                        foreach($reservaciones as $reservacion){
+                                $cliente = Obtener($reservacion['cliente_id'],'usuarios');
+                                $habitacion = Obtener($reservacion['habitacion_id'],'habitaciones');?>
+                        <tr>
+                            <td><?php echo $reservacion['id'];?></td>
+                            <td><?php echo $cliente['nombre'];?></td>
+                            <td><?php echo $cliente['telefono'];?></td>
+                            <td>
+                                <input type="hidden" id="hbt_<?php echo $reservacion['id'];?>" value="<?php echo $reservacion['habitacion_id'];?>">
+                                <?php echo $habitacion['nro'];?>
+                            </td>
+                            <td><?php echo $habitacion['precio'];?></td>
+                            <td><?php echo $reservacion['entrada'];?></td>
+                            <td><?php echo $reservacion['salida'];?></td>
+                            <td></td>
+                        </tr>
+                        <?php }?>
+                    </tbody>                   
+                    </table>                    
+                </div>
+            </div>
+        </div>  
+    </div>
+
+    <!--Modal para CRUD-->
+    <div class="modal fade" id="modalCRUD" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <form id="formreservaciones">
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="habitacion_id" class="col-form-label">Habitación:</label>
+                        <select class="form-control" id="habitacion_id"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entrada" class="col-form-label">Fecha de entrada:</label>
+                        <input type="datetime-local" class="form-control" id="entrada" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="salida" class="col-form-label">Fecha de salida:</label>
+                        <input type="datetime-local" class="form-control" id="salida" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="habitacion_det"></div>
+                    <input type="hidden" id="id">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" id="btnGuardar" class="btn btn-dark">Guardar</button>
+                </div>
+            </form>    
+            </div>
+        </div>
+    </div> 
+
+    <script>
+        $(document).ready(function(){
+            tablareservaciones = $("#tablareservaciones").DataTable({
+                "columnDefs":[{
+                "targets": -1,
+                "data":null,
+                "defaultContent": "<div class='text-center'><div class='btn-group'><button class='btn btn-success btnAprobar'>Aprobar</button><button class='btn btn-primary btnEditar'>Editar</button><button class='btn btn-danger btnBorrar'>Borrar</button></div></div>"  
+            }],
+            //Para cambiar el lenguaje a español
+            "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros",
+                    "zeroRecords": "No se encontraron resultados",
+                    "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sSearch": "Buscar:",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast":"Último",
+                        "sNext":"Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "sProcessing":"Procesando...",
+                } 
+            });
+
+        var fila; //capturar la fila para editar o borrar el registro
+
+        $("#formreservaciones").submit(function(e){
+            e.preventDefault();
+            habitacion_id = $.trim($("#habitacion_id").val());
+            hbt_nro = $.trim($("#hbt_nro_"+habitacion_id).val()+'<input type="hidden" id="hbt_'+id+'" value="'+habitacion_id+'">');
+            hbt_prc = $.trim($("#hbt_prc_"+habitacion_id).val());
+            entrada = $.trim($("#entrada").val()).replace('T',' ');
+            salida  = $.trim($("#salida").val()).replace('T',' ');
+            $.ajax({
+                url: "nucleo/accion/reservaciones",
+                type: "POST",
+                dataType: "json",
+                data: {id:id, habitacion_id:habitacion_id, entrada:entrada, salida:salida, opcion:opcion},
+                success: function(data){
+                    $("#hbt_"+id).val(habitacion_id);
+                    tablareservaciones.row(fila).data([id,cliente,tlf,hbt_nro,hbt_prc,entrada,salida]).draw();
+                }
+            });
+            $("#modalCRUD").modal("hide");    
+            
+        }); 
+
+        //botón APROBAR
+        $(document).on("click", ".btnAprobar", function(){    
+            fila = $(this);
+            id = parseInt($(this).closest("tr").find('td:eq(0)').text());
+            hbt_id = $("#hbt_"+id).val();
+            opcion = 4 //aprobar
+            var respuesta = confirm("¿Está seguro de aprobar el registro: "+id+"?");
+            if(respuesta){
+                $.ajax({
+                    url: "nucleo/accion/reservaciones",
+                    type: "POST",
+                    dataType: "json",
+                    data: {opcion:opcion, id:id, hbt_id:hbt_id},
+                    success: function(){
+                        tablareservaciones.row(fila.parents('tr')).remove().draw();
+                    }
+                });
+            }   
+        });
+
+        //botón EDITAR    
+        $(document).on("click", ".btnEditar", function(){
+            fila = $(this).closest("tr");
+            id = parseInt(fila.find('td:eq(0)').text());
+            cliente = fila.find('td:eq(1)').text();
+            tlf = fila.find('td:eq(2)').text();
+            nro = fila.find('td:eq(3)').text();
+            entrada = fila.find('td:eq(5)').text();
+            salida = fila.find('td:eq(6)').text();
+            hbt_id = $("#hbt_"+id).val();
+            opcion = 2; //Editar
+            
+            $("#id").val(id);
+            $("#entrada").val(entrada.replace(' ','T'));
+            $("#salida").val(salida.replace(' ','T'));
+            var habitaciones='', habitacion_det='';
+            <?php $habitaciones = ObtenerTodos('habitaciones','Disponible','estatus');
+            if(count($habitaciones)>0){
+            foreach($habitaciones as $habitacion){?>
+                if(hbt_id=='<?php echo $habitacion['id'];?>'){
+                    habitaciones += '<option value="<?php echo $habitacion['id'];?>" selected><?php echo $habitacion['nro'].' - precio: '.$habitacion['precio'];?></option>';
+                }else{
+                    habitaciones += '<option value="<?php echo $habitacion['id'];?>"><?php echo $habitacion['nro'].' - precio: '.$habitacion['precio'];?></option>';
+                }
+                habitacion_det+='<input type="hidden" id="hbt_prc_<?php echo $habitacion['id'];?>" value="<?php echo $habitacion['precio'];?>"><input type="hidden" id="hbt_nro_<?php echo $habitacion['id'];?>" value="<?php echo $habitacion['nro'];?>">';
+            <?php }}else{?>
+                habitaciones += '<option value="0">No hay habitaciones disponibles</option>';
+            <?php }?>
+            $("#habitacion_det").html(habitacion_det);
+            $("#habitacion_id").html(habitaciones);
+
+            $(".modal-header").css("background-color", "#007bff");
+            $(".modal-header").css("color", "white");
+            $(".modal-title").text("Editar Reservación");            
+            $("#modalCRUD").modal("show");  
+            
+        });
+
+        //botón BORRAR
+        $(document).on("click", ".btnBorrar", function(){    
+            fila = $(this);
+            id = parseInt($(this).closest("tr").find('td:eq(0)').text());
+            opcion = 3 //borrar
+            var respuesta = confirm("¿Está seguro de eliminar el registro: "+id+"?");
+            if(respuesta){
+                $.ajax({
+                    url: "nucleo/accion/reservaciones",
+                    type: "POST",
+                    dataType: "json",
+                    data: {opcion:opcion, id:id},
+                    success: function(){
+                        tablareservaciones.row(fila.parents('tr')).remove().draw();
+                    }
+                });
+            }   
+        });
+
+        });
+    </script>
+<!--Final del contenido principal-->
+
+<?php include "interfaz/administrador/layouts/parte_inferior.php"?>

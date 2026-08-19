@@ -1,0 +1,121 @@
+<!DOCTYPE HTML>
+<html lang="es">
+	<?php include "interfaz/usuario/layouts/parte_superior.php"?>
+	<body class="landing is-preload">
+		<div id="page-wrapper">
+			<?php include "interfaz/usuario/layouts/header.php"?>
+			<!-- Principal -->
+				<section id="main" class="container">
+
+
+					<section class="box special">
+						<div style="position: relative; text-align: center; margin-top: -80px">
+							<a href="#" class="button" style="background-color: chocolate; cursor: default;">
+								Reservaciones: <?php echo Total('reservaciones',$_SESSION['usuario']['id'],'cliente_id')?>
+							</a>
+							<a href="#" class="button" style="background-color: chocolate; cursor: default;">
+								Aprobadas: <?php echo Total('reservaciones',$_SESSION['usuario']['id'],'cliente_id','Aprobado','estatus')?>
+							</a>
+							<a href="#" class="button" style="background-color: chocolate; cursor: default;">
+								Pendientes: <?php echo Total('reservaciones',$_SESSION['usuario']['id'],'cliente_id','Pendiente','estatus')?>
+							</a>
+						</div>
+						<br>
+						<header class="major">
+							<div style=" margin-top:-20px; font-size: 2rem; text-decoration: bold;">Lista de reservaciónes</div>
+							<hr>
+							<div class="table-responsive">
+								<table id="tablareservaciones" class="table table-striped table-bordered table-condensed" style="width:100%">
+								<thead class="text-center">
+									<tr>
+										<th style="text-align: center;">ID</th>
+										<th style="text-align: center;">Estatus</th>
+										<th style="text-align: center;">Número de habitación</th>
+										<th style="text-align: center;">Precio</th>
+										<th style="text-align: center;">Entrada</th>
+										<th style="text-align: center;">Salida</th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php $reservaciones = ObtenerTodos('reservaciones',$_SESSION['usuario']['id'],'cliente_id');
+									foreach($reservaciones as $reservacion){
+											$cliente = Obtener($reservacion['cliente_id'],'usuarios');
+											$habitacion = Obtener($reservacion['habitacion_id'],'habitaciones');?>
+											<tr>
+												<td><?php echo $reservacion['id'];?></td>
+												<td><?php echo $reservacion['estatus'];?></td>
+												<td><?php echo $habitacion['nro'];?></td>
+												<td><?php echo $habitacion['precio'];?></td>
+												<td><?php echo $reservacion['entrada'];?></td>
+												<td><?php echo $reservacion['salida'];?></td>
+											</tr>
+									<?php }?>
+								</tbody>                   
+								</table>                    
+							</div>
+						</header>
+						<span class="image featured"><img src="images/pic01.jpg" alt="" /></span>
+					</section>
+					<br>
+
+					<!-- Principal<section class="box special features">
+						<div class="features-row">
+							<section>
+								<span class="icon solid major fa-bolt accent2"></span>
+								<h3>Magna etiam</h3>
+								<p>Integer volutpat ante et accumsan commophasellus sed aliquam feugiat lorem aliquet ut enim rutrum phasellus iaculis accumsan dolore magna aliquam veroeros.</p>
+							</section>
+							<section>
+								<span class="icon solid major fa-chart-area accent3"></span>
+								<h3>Ipsum dolor</h3>
+								<p>Integer volutpat ante et accumsan commophasellus sed aliquam feugiat lorem aliquet ut enim rutrum phasellus iaculis accumsan dolore magna aliquam veroeros.</p>
+							</section>
+						</div>
+						<div class="features-row">
+							<section>
+								<span class="icon solid major fa-cloud accent4"></span>
+								<h3>Sed feugiat</h3>
+								<p>Integer volutpat ante et accumsan commophasellus sed aliquam feugiat lorem aliquet ut enim rutrum phasellus iaculis accumsan dolore magna aliquam veroeros.</p>
+							</section>
+							<section>
+								<span class="icon solid major fa-lock accent5"></span>
+								<h3>Enim phasellus</h3>
+								<p>Integer volutpat ante et accumsan commophasellus sed aliquam feugiat lorem aliquet ut enim rutrum phasellus iaculis accumsan dolore magna aliquam veroeros.</p>
+							</section>
+						</div>
+					</section>
+
+					<div class="row">
+						<div class="col-6 col-12-narrower">
+
+							<section class="box special">
+								<span class="image featured"><img src="images/pic02.jpg" alt="" /></span>
+								<h3>Sed lorem adipiscing</h3>
+								<p>Integer volutpat ante et accumsan commophasellus sed aliquam feugiat lorem aliquet ut enim rutrum phasellus iaculis accumsan dolore magna aliquam veroeros.</p>
+								<ul class="actions special">
+									<li><a href="#" class="button alt">Learn More</a></li>
+								</ul>
+							</section>
+
+						</div>
+						<div class="col-6 col-12-narrower">
+
+							<section class="box special">
+								<span class="image featured"><img src="images/pic03.jpg" alt="" /></span>
+								<h3>Accumsan integer</h3>
+								<p>Integer volutpat ante et accumsan commophasellus sed aliquam feugiat lorem aliquet ut enim rutrum phasellus iaculis accumsan dolore magna aliquam veroeros.</p>
+								<ul class="actions special">
+									<li><a href="#" class="button alt">Learn More</a></li>
+								</ul>
+							</section>
+
+						</div>
+					</div>-->
+
+					
+				</section>
+			<?php include "interfaz/usuario/layouts/footer.php"?>
+		</div>
+		<?php include "interfaz/usuario/layouts/parte_inferior.php"?>
+	</body>
+</html>

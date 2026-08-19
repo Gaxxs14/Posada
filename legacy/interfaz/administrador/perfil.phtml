@@ -1,0 +1,53 @@
+<?php include "interfaz/administrador/layouts/parte_superior.php"?>
+
+<?php include "interfaz/administrador/layouts/header.php"?>
+
+<?php include "interfaz/administrador/layouts/footer.php"?>
+
+<link rel="stylesheet" href="interfaz/administrador/css/perfil.css">
+
+
+<!--Inicio del contenido principal-->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800"><i class="fa fa-user fa-fw"></i> Mi Perfil</h1>  
+  </div>
+</div>
+<hr class="sidebar-divider">
+
+<section class="seccion-perfil-usuario">
+    <div class="perfil-usuario-header">
+        <div class="perfil-usuario-portada">
+            <div class="perfil-usuario-avatar">
+                <img  src="./interfaz/administrador/img/undraw_profile.svg">  
+            </div>   
+        </div>
+    </div>
+
+        <div class="perfil-usuario-body">
+            <a href="configuracion" style="position:absolute; top: 40px; right: 10px;"><i class="fas fa-edit"></i>Editar perfil</a>
+            <div class="perfil-usuario-bio">
+                <h3 class="titulo"><?php echo $_SESSION['usuario']['nombre'];?></h3>
+            </div>
+            
+            <div class="perfil-usuario-footer">
+                <ul class="lista-datos">
+                    <li><i class="icono fas fa-map-signs"></i> ID: <?php echo $_SESSION['usuario']['id'];?></li>
+                    <li><i class="icono fas fa-user-check"></i> Usuario: <?php echo $_SESSION['usuario']['usuario'];?></li>
+                    <li><i class="icono fas fa-building"></i> Nivel de usuario: <?php echo $_SESSION['usuario']['tipo'];?></li>
+                      
+                </ul>
+                <ul class="lista-datos">
+                <li><i class="icono fas fa-envelope"></i> Correo: <?php echo $_SESSION['usuario']['correo'];?></li>
+                <li><i class="icono fas fa-phone-alt"></i> Telefono: <?php echo $_SESSION['usuario']['telefono'];?></li>
+                </ul>
+            </div>
+        </div>
+        <br>
+        <br>
+</section>
+
+<!--Final del contenido principal-->
+
+<?php include "interfaz/administrador/layouts/parte_inferior.php"?>

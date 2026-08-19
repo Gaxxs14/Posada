@@ -1,0 +1,123 @@
+<?php include "interfaz/administrador/layouts/parte_superior.php"?>
+
+<?php include "interfaz/administrador/layouts/header.php"?>
+
+<?php include "interfaz/administrador/layouts/footer.php"?>
+
+
+<!--Inicio del contenido principal-->
+<div class="container-fluid">
+<!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-fw fa-tachometer-alt"></i> Panel de Control</h1>
+    </div>
+    <div class="row">
+
+                        <!-- Clientes -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Clientes</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo Total('usuarios','Cliente','tipo')?></div>
+                                            <a class="small text-black stretched-link" href="usuarios">View Details</a>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-user fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Habitaciones disponibles -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Habitaciones Disponibles</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo Total('habitaciones','Disponible','estatus')?></div>
+                                            <a class="small text-black stretched-link" href="habitaciones">View Details</a>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-bed fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Habitaciones ocupadas -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Habitaciones Ocupadas
+                                            </div>
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-auto">
+                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"><?php echo Total('habitaciones','Ocupada','estatus')?></div>
+                                                    <a class="small text-black stretched-link" href="habitaciones">View Details</a>
+                                                </div>
+                                                <div class="col">
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-bed fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Reservaciones -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Reservaciones</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo Total('reservaciones','Aprobado','estatus')?></div>
+                                            <a class="small text-black stretched-link" href="reservaciones">View Details</a>
+                                        </div>
+                                        <div class="col-auto">
+                                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                        <!-- Reservaciones pendientes -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Reservaciones pendientes</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo Total('reservaciones','Pendiente','estatus')?></div>
+                                                <a class="small text-black stretched-link" href="reservaciones-pendientes">View Details</a>
+                                        </div>
+                                        <div class="col-auto">
+                                             <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+</div>
+<!--Final del contenido principal-->
+
+<?php include "interfaz/administrador/layouts/parte_inferior.php"?>

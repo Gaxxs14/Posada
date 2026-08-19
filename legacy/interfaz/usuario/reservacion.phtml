@@ -1,0 +1,70 @@
+<!DOCTYPE HTML>
+<html lang="es">
+	<?php include "interfaz/usuario/layouts/parte_superior.php"?>
+	<body class="landing is-preload">
+		<div id="page-wrapper">
+			<?php include "interfaz/usuario/layouts/header.php"?>
+			<!-- Principal -->
+				<section id="main" class="container">
+
+					<section class="box special" style=" margin: -80px 150px 0 150px; background-color:white;">
+                    <a href="inicio">
+                        <img src="interfaz/usuario/images/logo.png" style="display: block; margin: 0px auto; margin-top:-50px; width: 190px; height: 190px;">
+                    </a>
+                    <br>
+                        <div style=" margin-top:-20px; font-size: 2rem; text-decoration: bold;">Reservación</div>
+                        <hr>
+                        <form id="formreservaciones">
+                            <div class="form-group">
+                                <label for="habitacion_id" class="col-form-label">Habitación:</label>
+                                <select class="form-control" id="habitacion_id">
+                                    <?php $habitaciones = ObtenerTodos('habitaciones'); $i=0;
+                                        foreach($habitaciones as $habitacion){ if($habitacion['estatus']=='Disponible'){ $i++;?>
+                                            <option value="<?php echo $habitacion['id'];?>"><?php echo $habitacion['nro'].' - precio: '.$habitacion['precio'];?></option>
+                                    <?php }} if($i==0){?>
+                                        <option value="0">No hay habitaciones disponibles</option>
+                                    <?php }?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="entrada" class="col-form-label">Fecha de entrada:</label>
+                                <input type="datetime-local" class="form-control" id="entrada" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="salida" class="col-form-label">Fecha de salida:</label>
+                                <input type="datetime-local" class="form-control" id="salida" required>
+                            </div><br><br>
+                            <button class="button" style="background-color:green;" id="btn_reservar">Reservar</button>
+                        </form>
+                        <script>
+                            var reservar = $('#formreservaciones');
+                            reservar.submit(function(e){
+                                var habitacion_id = $('#habitacion_id').val();
+                                var entrada = $('#entrada').val();
+                                var salida = $('#salida').val();                              
+                                reservar.find('#btn_reservar').text('Reservando...');
+                                reservar.find('button[type="submit"]').attr('disabled','true');
+                                e.preventDefault();
+                                $.ajax({
+                                    url: "nucleo/accion/reservaciones-cliente",
+                                    type: "POST",
+                                    dataType: "json",
+                                    data: { habitacion_id:habitacion_id, entrada:entrada.replace('T',' '), salida:salida.replace('T',' ') },
+                                    success: function(data){
+                                        alert("Reservación exitosa");
+                                        window.location = "<?php echo URL;?>inicio";
+                                        reservar.find('#btn_reservar').text('Reservar');
+                                        reservar.find('button[type="submit"]').removeAttr('disabled');
+                                    }
+                                });                                
+                            }); 
+                        </script>
+
+					</section>
+
+				</section>
+			<?php include "interfaz/usuario/layouts/footer.php"?>
+		</div>
+		<?php include "interfaz/usuario/layouts/parte_inferior.php"?>
+	</body>
+</html>

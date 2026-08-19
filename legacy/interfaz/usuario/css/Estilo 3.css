@@ -1,0 +1,49 @@
+*{
+	margin: 0;
+	padding: 0;
+}
+
+body{
+	background: #f0f0f0;
+	font-family: calibri;
+}
+
+
+h1{
+	text-align: center;
+	color:#6e6e6e;
+	font-size: 30px;
+	font-family: 'century'; 
+
+}
+
+h2{
+	text-align: center;
+	color:#6e6e6e;
+	font-size: 34px;
+	font-family: 'century'; 
+	margin-top: 40px;
+
+
+
+}
+
+
+
+#img{
+
+	width: 250px;
+	height: 250px;
+	display: block;
+	margin: auto;
+	border-radius: 5px;
+	margin-top: 25px;
+}
+
+
+
+#pie{
+	text-decoration: none;
+	color: blue;
+
+}

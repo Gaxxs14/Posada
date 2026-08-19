@@ -1,0 +1,189 @@
+<?php include "interfaz/administrador/layouts/parte_superior.php"?>
+
+<?php include "interfaz/administrador/layouts/header.php"?>
+
+<?php include "interfaz/administrador/layouts/footer.php"?>
+
+<!--Inicio del contenido principal-->
+    <div class="container-fluid">
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-bed"></i> Lista de Habitaciones</h1>
+            <div class="row">
+            
+                <div class="col-lg-12">
+                    <button id="btnNuevo" type="button" class="btn btn-success" data-toggle="modal">Nueva Habitación</button>
+                </div>
+            </div>               
+        </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">        
+                    <table id="tablahabitaciones" class="table table-striped table-bordered table-condensed" style="width:100%">
+                    <thead class="text-center">
+                        <tr>
+                            <th>ID</th>
+                            <th>Número de habitación</th>
+                            <th>Precio</th>
+                            <th>Estatus</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $habitaciones = ObtenerTodos('habitaciones');
+                        foreach($habitaciones as $habitacion){?>
+                        <tr>
+                            <td><?php echo $habitacion['id'];?></td>
+                            <td><?php echo $habitacion['nro'];?></td>
+                            <td><?php echo $habitacion['precio'];?></td>
+                            <td><?php echo $habitacion['estatus'];?></td>
+                            <td></td>
+                        </tr>
+                        <?php }?>
+                    </tbody>                   
+                    </table>                    
+                </div>
+            </div>
+        </div>  
+    </div>
+    <script>
+        $(document).ready(function(){
+            tablahabitaciones = $("#tablahabitaciones").DataTable({
+                "columnDefs":[{
+                "targets": -1,
+                "data":null,
+                "defaultContent": "<div class='text-center'><div class='btn-group'><button class='btn btn-primary btnEditar'>Editar</button><button class='btn btn-danger btnBorrar'>Borrar</button></div></div>"  
+            }],
+            //Para cambiar el lenguaje a español
+            "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros",
+                    "zeroRecords": "No se encontraron resultados",
+                    "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sSearch": "Buscar:",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast":"Último",
+                        "sNext":"Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "sProcessing":"Procesando...",
+                } 
+            });
+
+            $("#btnNuevo").click(function(){
+            $("#formhabitaciones").trigger("reset");
+            $(".modal-header").css("background-color", "#28a745");
+            $(".modal-header").css("color", "white");
+            $(".modal-title").text("Nueva Habitación");            
+            $("#modalCRUD").modal("show");
+            
+            id=null;
+            opcion = 1; //agregar
+        });
+
+        var fila; //capturar la fila para editar o borrar el registro
+
+        $("#formhabitaciones").submit(function(e){
+            e.preventDefault();
+            nro = $.trim($("#nro").val());
+            precio = $.trim($("#precio").val());
+            $.ajax({
+                url: "nucleo/accion/habitaciones",
+                type: "POST",
+                dataType: "json",
+                data: {id:id, nro:nro, precio:precio, opcion:opcion},
+                success: function(data){
+                    if(opcion == 1){
+                        tablahabitaciones.row.add([id,nro,precio,'Disponible']).draw();
+                    }else{
+                        tablahabitaciones.row(fila).data([id,nro,precio,disponible]).draw();
+                    }            
+                }        
+            });
+            $("#modalCRUD").modal("hide");    
+            
+        }); 
+
+        //botón EDITAR    
+        $(document).on("click", ".btnEditar", function(){
+            fila = $(this).closest("tr");
+            id = parseInt(fila.find('td:eq(0)').text());
+            nro = fila.find('td:eq(1)').text();
+            precio = fila.find('td:eq(2)').text();
+            disponible = fila.find('td:eq(3)').text();
+            
+            opcion = 2; //Editar
+            
+            $("#id").val(id);
+            $("#nro").val(nro);
+            $("#precio").val(precio);
+
+            $(".modal-header").css("background-color", "#007bff");
+            $(".modal-header").css("color", "white");
+            $(".modal-title").text("Editar Habitación");            
+            $("#modalCRUD").modal("show");  
+            
+        });
+
+        //botón BORRAR
+        $(document).on("click", ".btnBorrar", function(){    
+            fila = $(this);
+            id = parseInt($(this).closest("tr").find('td:eq(0)').text());
+            opcion = 3 //borrar
+            var respuesta = confirm("¿Está seguro de eliminar el registro: "+id+"?");
+            if(respuesta){
+                $.ajax({
+                    url: "nucleo/accion/habitaciones",
+                    type: "POST",
+                    dataType: "json",
+                    data: {opcion:opcion, id:id},
+                    success: function(){
+                        tablahabitaciones.row(fila.parents('tr')).remove().draw();
+                    }
+                });
+            }   
+        });
+
+        });
+    </script>
+
+    <!--Modal para CRUD-->
+    <div class="modal fade" id="modalCRUD" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <form id="formhabitaciones">    
+                <div class="modal-body">
+                    <div class="form-group">
+                    <label for="nro" class="col-form-label">Número:</label>
+                    <input type="text" class="form-control" id="nro" required>
+                    </div>
+                    <div class="form-group">
+                    <label for="precio" class="col-form-label">Precio:</label>
+                    <input type="text" class="form-control" id="precio" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" id="id">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" id="btnGuardar" class="btn btn-dark">Guardar</button>
+                </div>
+            </form>    
+            </div>
+        </div>
+    </div> 
+
+<!--Final del contenido principal-->
+
+<?php include "interfaz/administrador/layouts/parte_inferior.php"?>

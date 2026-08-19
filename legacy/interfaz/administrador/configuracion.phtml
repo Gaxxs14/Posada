@@ -1,0 +1,114 @@
+<?php include "interfaz/administrador/layouts/parte_superior.php"?>
+
+<?php include "interfaz/administrador/layouts/header.php"?>
+
+<?php include "interfaz/administrador/layouts/footer.php"?>
+
+
+<link rel="stylesheet" href="interfaz/administrador/css/perfil.css">
+
+<!--Inicio del contenido principal-->
+<div class="container-fluid">
+  <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i> Configuraciones</h1>
+        </div>
+</div>
+<hr class="sidebar-divider">
+
+    <form id="actualizar_perfil">
+        <section class="seccion-perfil-usuario">
+            <div class="perfil-usuario-header">
+                <div class="perfil-usuario-portada">
+                    <div class="perfil-usuario-avatar">
+                        <img  src="./interfaz/administrador/img/undraw_profile.svg">  
+                    </div>   
+                </div>
+            </div>
+                <div class="perfil-usuario-body">
+                    <div class="perfil-usuario-bio">
+                        <h3 class="titulo">
+                            <div class="form-group row" style="padding: 0 200px;">
+                                <button class="btn col-2" style="cursor:default; background: #DFE5F2;">
+                                    <i class="icono fas fa-user"></i>
+                                </button>
+                                <input type="text" class="form-control col-10" id="nombre" placeholder="Nombre" value="<?php echo $_SESSION['usuario']['nombre'];?>">
+                            </div>
+                        </h3>
+                    </div>
+                    
+                    <div class="perfil-usuario-footer">
+                        <ul class="lista-datos" style="padding:25px;">
+                            <li>
+                                <div class="form-group row">
+                                    <button class="btn col-2" style="cursor:default; background: #DFE5F2;">
+                                        <i class="icono fas fa-user-check"></i>
+                                    </button>
+                                    <input type="text" class="form-control col-10" id="usuario" placeholder="Nombre de usuario" value="<?php echo $_SESSION['usuario']['usuario'];?>">
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group row">
+                                    <button class="btn col-2" style="cursor:default; background: #DFE5F2;">
+                                        <i class="icono fas fa-building"></i>
+                                    </button>
+                                    <select class="form-control col-10" name="tipo" id="tipo">
+                                        <option value="Administrador" <?php echo ($_SESSION['usuario']['tipo']=='Administrador')?'selected':'';?>>Administrador</option>
+                                        <option value="Cliente" <?php echo ($_SESSION['usuario']['tipo']=='Cliente')?'selected':'';?>>Cliente</option>
+                                    </select>
+                                </div>
+                            </li>
+                        </ul>
+                        <ul class="lista-datos" style="padding:25px;">
+                            <li>
+                                <div class="form-group row">
+                                    <button class="btn col-2" style="cursor:default; background: #DFE5F2;">
+                                        <i class="icono fas fa-envelope"></i>
+                                    </button>
+                                    <input type="email" class="form-control col-10" id="correo" placeholder="Correo" value="<?php echo $_SESSION['usuario']['correo'];?>">
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group row">
+                                    <button class="btn col-2" style="cursor:default; background: #DFE5F2;">
+                                        <i class="icono fas fa-phone-alt"></i>
+                                    </button>
+                                    <input type="text" class="form-control col-10" id="telefono" placeholder="Teléfono" value="<?php echo $_SESSION['usuario']['telefono'];?>">
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+        </section>
+        <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+            <button class="btn btn-success" id="btn_actualizar">Actualizar</button>
+        </div>
+    </form>
+<script>
+    var actualizar = $('#actualizar_perfil');
+    actualizar.submit(function(e){
+        var nombre   = $('#nombre').val();
+        var usuario  = $('#usuario').val();
+        var correo   = $('#correo').val();
+        var telefono = $('#telefono').val();
+        var tipo     = $('#tipo').val();
+        actualizar.find('#btn_actualizar').text('Actualizando...');
+        actualizar.find('button[type="submit"]').attr('disabled','true');
+        e.preventDefault();
+        $.ajax({
+            url: "nucleo/accion/actualizar-perfil",
+            type: "POST",
+            dataType: "json",
+            data: { nombre:nombre, usuario:usuario, correo:correo, telefono:telefono, tipo:tipo },
+            success: function(data){
+                alert("Actualización exitosa");
+                window.location = "<?php echo URL;?>perfil";
+                actualizar.find('#btn_actualizar').text('Actualizar');
+                actualizar.find('button[type="submit"]').removeAttr('disabled');
+            }
+        });                                
+    }); 
+</script>
+<!--Final del contenido principal-->
+
+<?php include "interfaz/administrador/layouts/parte_inferior.php"?>

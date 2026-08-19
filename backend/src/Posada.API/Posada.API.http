@@ -1,0 +1,6 @@
+@Posada.API_HostAddress = http://localhost:5082
+
+GET {{Posada.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
