@@ -2,15 +2,15 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS build
 WORKDIR /app
 
-# Copy solution and csproj files
-COPY *.sln .
+# Copy csproj and solution files
+COPY Posada.sln* .
 COPY src/Posada.Domain/*.csproj src/Posada.Domain/
 COPY src/Posada.Application/*.csproj src/Posada.Application/
 COPY src/Posada.Infrastructure/*.csproj src/Posada.Infrastructure/
 COPY src/Posada.API/*.csproj src/Posada.API/
 
-# Restore dependencies
-RUN dotnet restore
+# Restore dependencies directly via API entrypoint
+RUN dotnet restore src/Posada.API/Posada.API.csproj
 
 # Copy all source files and build
 COPY . .
