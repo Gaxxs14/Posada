@@ -1,7 +1,6 @@
 class ApiEndpoints {
-  // In development, you can point to localhost:8080 (or 5000/http://10.0.2.2:8080 on Android emulator)
-  // In production, point to your Render deployment URL: https://posada-pro.onrender.com
-  static const String baseUrl = 'http://localhost:8080';
+  // Production Render Backend URL
+  static const String baseUrl = 'https://posada-0nkr.onrender.com';
 
   // Auth
   static const String login = '/api/auth/login';

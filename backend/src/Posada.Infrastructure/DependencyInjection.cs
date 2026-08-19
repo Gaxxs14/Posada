@@ -15,9 +15,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection") 
+        var rawConnection = configuration.GetConnectionString("DefaultConnection") 
             ?? configuration["DATABASE_URL"] 
-            ?? "Host=localhost;Port=5432;Database=posada_pro;Username=postgres;Password=postgres";
+            ?? configuration["ConnectionStrings__DefaultConnection"]
+            ?? "Host=ep-jolly-wildflower-axfbynbc-pooler.c-4.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_ds3f2aEKnBWN;SSL Mode=Require;Trust Server Certificate=true;";
+
+        var connectionString = ParsePostgreSqlConnectionString(rawConnection);
 
         services.AddDbContext<AppDbContext>(options =>
         {
@@ -38,9 +41,11 @@ public static class DependencyInjection
         services.AddScoped<IAiConciergeService, AiConciergeService>();
 
         // JWT Authentication
-        var secretKey = configuration["Jwt:Key"] ?? "PosadaSuperSecretKey2026_UltraSecureKeyForHotelSystemProd_!";
-        var issuer = configuration["Jwt:Issuer"] ?? "PosadaServer";
-        var audience = configuration["Jwt:Audience"] ?? "PosadaClients";
+        var secretKey = configuration["Jwt:Key"] 
+            ?? configuration["Jwt__Key"]
+            ?? "PosadaSuperSecretKey2026_UltraSecureKeyForHotelSystemProd_!";
+        var issuer = configuration["Jwt:Issuer"] ?? configuration["Jwt__Issuer"] ?? "PosadaServer";
+        var audience = configuration["Jwt:Audience"] ?? configuration["Jwt__Audience"] ?? "PosadaClients";
 
         services.AddAuthentication(options =>
         {
@@ -62,5 +67,34 @@ public static class DependencyInjection
         });
 
         return services;
+    }
+
+    private static string ParsePostgreSqlConnectionString(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return raw;
+
+        raw = raw.Trim();
+        if (raw.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+            raw.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var uri = new Uri(raw);
+                var userInfo = uri.UserInfo.Split(':');
+                var username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : "";
+                var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+                var host = uri.Host;
+                var port = uri.Port > 0 ? uri.Port : 5432;
+                var database = uri.AbsolutePath.TrimStart('/');
+
+                return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+            }
+            catch
+            {
+                return raw;
+            }
+        }
+
+        return raw;
     }
 }
