@@ -106102,7 +106102,7 @@ $S:95}
 A.PF.prototype={
 jt(a,b){var s=null,r=b.cz($.aRT(),t.QW),q=b.cz($.p4(),t.FB)
 return A.jr(s,A.kB(r,new A.abd(this,b,A.bI(a,s,t.w).w.a.a>950,a,q.a),new A.abe(b),new A.abf(),t.P,t.jK),s,s)},
-afi(a,b){var s,r,q,p,o,n,m=J.at(b),l=A.dC(m.i(b,"occupancyRate")),k=l==null?null:l
+afi(a,b){var s,r,q,p,o,n,m=J.at(b),l=A.dC(m.i(b,"occupancyRatePercentage")),k=l==null?null:l
 if(k==null)k=0
 s=A.dB(m.i(b,"totalRooms"))
 if(s==null)s=0
@@ -106114,7 +106114,7 @@ if(q==null)q=0
 l=A.dC(m.i(b,"monthlyRevenueVes"))
 p=l==null?null:l
 if(p==null)p=0
-o=A.dB(m.i(b,"pendingBookingsCount"))
+o=A.dB(m.i(b,"pendingBookings"))
 if(o==null)o=0
 n=A.dB(m.i(b,"availableRooms"))
 return A.Ff(new A.ab3(this,a,k,r,s,q,p,o,n==null?0:n))},
@@ -106172,7 +106172,7 @@ d=d==null?g:d.b
 if(d==null)d="Administrador"
 s=A.Dw("EEEE, d MMMM yyyy","es_ES").dv(new A.cu(Date.now(),0,!1))
 r=J.at(a)
-q=A.dC(r.i(a,"occupancyRate"))
+q=A.dC(r.i(a,"occupancyRatePercentage"))
 p=q==null?g:q
 if(p==null)p=0
 o=A.dB(r.i(a,"occupiedRooms"))

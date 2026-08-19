@@ -109,8 +109,9 @@ class AdminDashboardScreen extends ConsumerWidget {
 
   Widget _buildWelcomeHero(BuildContext context, String userName, Map<String, dynamic> stats) {
     final today = DateFormat('EEEE, d MMMM yyyy', 'es_ES').format(DateTime.now());
-    final occRate = (stats['occupancyRate'] as num?)?.toDouble() ?? 0.0;
+    final occRate = (stats['occupancyRatePercentage'] as num?)?.toDouble() ?? 0.0;
     final occRooms = stats['occupiedRooms'] as int? ?? 0;
+    // La tasa BCV viene de HotelSettings; si no viene en el dashboard, usamos 765.0 por defecto
     final bcvRate = (stats['usdExchangeRateBcv'] as num?)?.toDouble() ?? 765.0;
 
     return Container(
@@ -200,12 +201,12 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildKpiGrid(bool isDesktop, Map<String, dynamic> stats) {
-    final occRate = (stats['occupancyRate'] as num?)?.toDouble() ?? 0.0;
+    final occRate = (stats['occupancyRatePercentage'] as num?)?.toDouble() ?? 0.0;
     final totalRooms = stats['totalRooms'] as int? ?? 0;
     final occupiedRooms = stats['occupiedRooms'] as int? ?? 0;
     final revenueUsd = (stats['monthlyRevenueUsd'] as num?)?.toDouble() ?? 0.0;
     final revenueVes = (stats['monthlyRevenueVes'] as num?)?.toDouble() ?? 0.0;
-    final pendingCount = stats['pendingBookingsCount'] as int? ?? 0;
+    final pendingCount = stats['pendingBookings'] as int? ?? 0;
     final availableRooms = stats['availableRooms'] as int? ?? 0;
 
     return LayoutBuilder(
