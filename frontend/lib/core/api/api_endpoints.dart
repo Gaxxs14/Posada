@@ -1,13 +1,6 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 class ApiEndpoints {
-  // Production backend URL
-  static const String _backendUrl = 'https://posada-0nkr.onrender.com';
-
-  /// On web, the Flutter app is served FROM the .NET backend itself,
-  /// so we use an empty base URL (same-origin). This eliminates CORS entirely.
-  /// On mobile (Android/iOS), we use the full backend URL.
-  static String get baseUrl => kIsWeb ? '' : _backendUrl;
+  // Production backend URL (always full URL - CORS is configured to allow all origins)
+  static const String baseUrl = 'https://posada-0nkr.onrender.com';
 
   // Auth
   static const String login = '/api/auth/login';

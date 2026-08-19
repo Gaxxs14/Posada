@@ -24,9 +24,11 @@ class AuthRepository {
         data: {'identifier': identifier, 'password': password},
       );
 
-      if (response.data['success'] == true) {
-        final data = response.data['data'];
-        final user = UserModel.fromJson(data);
+      final data = response.data;
+      if (data is! Map) throw Exception('Respuesta inesperada del servidor');
+
+      if (data['success'] == true) {
+        final user = UserModel.fromJson(data['data']);
         if (user.token != null) {
           await _storage.write('jwt_token', user.token!);
           await _storage.write('user_role', user.role);
@@ -34,11 +36,15 @@ class AuthRepository {
         }
         return user;
       } else {
-        throw Exception(response.data['message'] ?? 'Error de inicio de sesión');
+        throw Exception(data['message'] ?? 'Error de inicio de sesión');
       }
     } on DioException catch (e) {
-      final msg = e.response?.data?['message'] ?? 'Error de conexión con el servidor';
+      final msg = e.response?.data is Map
+          ? (e.response?.data?['message'] ?? 'Error de conexión con el servidor')
+          : 'Error de conexión con el servidor';
       throw Exception(msg);
+    } catch (e) {
+      throw Exception('Error inesperado: $e');
     }
   }
 

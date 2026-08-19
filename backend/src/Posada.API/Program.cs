@@ -27,7 +27,7 @@ builder.Services.AddControllers()
 // Infrastructure & Services (EF Core, JWT, Repositories)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// CORS - allow all origins (needed for mobile app and different clients)
+// CORS - allow all origins (mobile app + web clients)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -62,10 +62,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Serve Flutter Web from wwwroot (eliminates CORS completely for web browsers)
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
 // Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -74,7 +70,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-// Middleware pipeline
+// Middleware pipeline (order matters!)
 app.UseRouting();
 app.UseCors("AllowAll");
 app.UseAuthentication();
@@ -82,10 +78,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Healthcheck
+// Healthcheck endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow, system = "Posada API v1.0" }));
-
-// SPA fallback - for Flutter web HTML5 routing
-app.MapFallbackToFile("index.html");
 
 app.Run();
