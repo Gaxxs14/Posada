@@ -15,18 +15,19 @@ builder.Services.AddControllers()
 // Infrastructure & Services (EF Core, JWT, Repositories)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// CORS for Flutter Web & Mobile
+// Robust CORS for Flutter Web (Handles preflight OPTIONS and authorization headers)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
-// Swagger with JWT Security
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -48,14 +49,16 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure HTTP request pipeline
+// Swagger at root URL
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Posada Pro API v1");
-    c.RoutePrefix = string.Empty; // Swagger at root URL
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Posada API v1");
+    c.RoutePrefix = string.Empty;
 });
 
+// Middleware pipeline order
+app.UseRouting();
 app.UseCors("AllowAll");
 
 app.UseAuthentication();
@@ -64,6 +67,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Healthcheck endpoint
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow, system = "Posada Pro API v1.0" }));
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow, system = "Posada API v1.0" }));
 
 app.Run();
