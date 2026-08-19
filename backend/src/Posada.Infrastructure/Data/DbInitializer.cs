@@ -31,9 +31,13 @@ public static class DbInitializer
         }
 
         // 2. Seed Users
+        User adminUser;
+        User receptionistUser;
+        User guestUser;
+
         if (!await context.Users.AnyAsync())
         {
-            var adminUser = new User
+            adminUser = new User
             {
                 Id = Guid.NewGuid(),
                 FullName = "Gabriel Gallardo (Admin)",
@@ -46,7 +50,7 @@ public static class DbInitializer
                 CreatedAt = DateTime.UtcNow
             };
 
-            var receptionistUser = new User
+            receptionistUser = new User
             {
                 Id = Guid.NewGuid(),
                 FullName = "Recepcionista Principal",
@@ -59,7 +63,7 @@ public static class DbInitializer
                 CreatedAt = DateTime.UtcNow
             };
 
-            var guestUser = new User
+            guestUser = new User
             {
                 Id = Guid.NewGuid(),
                 FullName = "Julimer Gallardo (Cliente)",
@@ -74,6 +78,12 @@ public static class DbInitializer
 
             context.Users.AddRange(adminUser, receptionistUser, guestUser);
             await context.SaveChangesAsync();
+        }
+        else
+        {
+            adminUser = await context.Users.FirstAsync(u => u.Role == UserRole.Admin);
+            receptionistUser = await context.Users.FirstOrDefaultAsync(u => u.Role == UserRole.Receptionist) ?? adminUser;
+            guestUser = await context.Users.FirstOrDefaultAsync(u => u.Role == UserRole.Guest) ?? adminUser;
         }
 
         // 3. Seed Rooms
@@ -92,7 +102,7 @@ public static class DbInitializer
                     Capacity = 2,
                     AmenitiesJson = JsonSerializer.Serialize(new[] { "WiFi Alta Velocidad", "Aire Acondicionado", "Smart TV 43\"", "Baño Privado", "Agua Caliente" }),
                     ImageUrlsJson = JsonSerializer.Serialize(new[] { "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800", "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800" }),
-                    Status = RoomStatus.Available,
+                    Status = RoomStatus.Occupied,
                     Floor = 1,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
@@ -108,7 +118,7 @@ public static class DbInitializer
                     Capacity = 2,
                     AmenitiesJson = JsonSerializer.Serialize(new[] { "Vista al Mar", "Jacuzzi Privado", "WiFi Alta Velocidad", "Aire Acondicionado", "Smart TV 55\"", "Minibar Incluido", "Desayuno Incluido" }),
                     ImageUrlsJson = JsonSerializer.Serialize(new[] { "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800", "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800" }),
-                    Status = RoomStatus.Available,
+                    Status = RoomStatus.NeedsCleaning,
                     Floor = 1,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
@@ -214,6 +224,109 @@ public static class DbInitializer
             };
 
             context.Experiences.AddRange(experiences);
+            await context.SaveChangesAsync();
+        }
+
+        // 5. Seed Bookings & Payments if none exist
+        if (!await context.Bookings.AnyAsync())
+        {
+            var room101 = await context.Rooms.FirstAsync(r => r.RoomNumber == "101");
+            var room102 = await context.Rooms.FirstAsync(r => r.RoomNumber == "102");
+            var room201 = await context.Rooms.FirstAsync(r => r.RoomNumber == "201");
+
+            var bcv = 765.00m;
+
+            var booking1 = new Booking
+            {
+                Id = Guid.NewGuid(),
+                BookingCode = "POS-2026-0801",
+                GuestId = guestUser.Id,
+                RoomId = room101.Id,
+                CheckInDate = DateTime.UtcNow.Date.AddDays(-1),
+                CheckOutDate = DateTime.UtcNow.Date.AddDays(2),
+                TotalNights = 3,
+                GuestsCount = 2,
+                PricePerNightUsd = 45.00m,
+                TotalAmountUsd = 135.00m,
+                ExchangeRateUsed = bcv,
+                Status = BookingStatus.CheckedIn,
+                CheckedInAt = DateTime.UtcNow.AddDays(-1),
+                CreatedAt = DateTime.UtcNow.AddDays(-5),
+                SpecialRequests = "Check-in temprano por favor"
+            };
+
+            var payment1 = new Payment
+            {
+                Id = Guid.NewGuid(),
+                BookingId = booking1.Id,
+                AmountUsd = 135.00m,
+                AmountVes = 135.00m * bcv,
+                ExchangeRate = bcv,
+                Method = PaymentMethod.MobilePay,
+                ReferenceNumber = "PAGO-MOVIL-984210",
+                Status = PaymentStatus.Approved,
+                ProcessedAt = DateTime.UtcNow.AddDays(-1),
+                ApprovedByUserId = adminUser.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-5)
+            };
+
+            var booking2 = new Booking
+            {
+                Id = Guid.NewGuid(),
+                BookingCode = "POS-2026-0802",
+                GuestId = guestUser.Id,
+                RoomId = room201.Id,
+                CheckInDate = DateTime.UtcNow.Date.AddDays(1),
+                CheckOutDate = DateTime.UtcNow.Date.AddDays(4),
+                TotalNights = 3,
+                GuestsCount = 4,
+                PricePerNightUsd = 120.00m,
+                TotalAmountUsd = 360.00m,
+                ExchangeRateUsed = bcv,
+                Status = BookingStatus.Confirmed,
+                CreatedAt = DateTime.UtcNow.AddDays(-2),
+                SpecialRequests = "Cuna para bebé"
+            };
+
+            var payment2 = new Payment
+            {
+                Id = Guid.NewGuid(),
+                BookingId = booking2.Id,
+                AmountUsd = 360.00m,
+                AmountVes = 360.00m * bcv,
+                ExchangeRate = bcv,
+                Method = PaymentMethod.Zelle,
+                ReferenceNumber = "ZELLE-TRX-551920",
+                Status = PaymentStatus.Approved,
+                ProcessedAt = DateTime.UtcNow.AddDays(-2),
+                ApprovedByUserId = adminUser.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-2)
+            };
+
+            var booking3 = new Booking
+            {
+                Id = Guid.NewGuid(),
+                BookingCode = "POS-2026-0803",
+                GuestId = guestUser.Id,
+                RoomId = room102.Id,
+                CheckInDate = DateTime.UtcNow.Date.AddDays(3),
+                CheckOutDate = DateTime.UtcNow.Date.AddDays(5),
+                TotalNights = 2,
+                GuestsCount = 2,
+                PricePerNightUsd = 95.00m,
+                TotalAmountUsd = 190.00m,
+                ExchangeRateUsed = bcv,
+                Status = BookingStatus.Pending,
+                CreatedAt = DateTime.UtcNow.AddHours(-3),
+                SpecialRequests = "Vista al mar alta"
+            };
+
+            context.Bookings.AddRange(booking1, booking2, booking3);
+            context.Payments.AddRange(payment1, payment2);
+
+            room101.Status = RoomStatus.Occupied;
+            room102.Status = RoomStatus.NeedsCleaning;
+
             await context.SaveChangesAsync();
         }
     }

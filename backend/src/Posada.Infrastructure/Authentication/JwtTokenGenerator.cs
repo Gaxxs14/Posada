@@ -19,30 +19,25 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
     public string GenerateToken(User user, out DateTime expiresAt)
     {
-        var secretKey = _config["Jwt:Key"] ?? "PosadaSuperSecretKey2026_UltraSecureKeyForHotelSystemProd_!";
-        var issuer = _config["Jwt:Issuer"] ?? "PosadaServer";
-        var audience = _config["Jwt:Audience"] ?? "PosadaClients";
-        var expiryDays = int.TryParse(_config["Jwt:ExpiryDays"], out var days) ? days : 7;
+        var secretKey = _config["Jwt:Key"] 
+            ?? _config["Jwt__Key"] 
+            ?? "PosadaSuperSecretKey2026_UltraSecureKeyForHotelSystemProd_!";
+        var issuer = _config["Jwt:Issuer"] ?? _config["Jwt__Issuer"] ?? "PosadaServer";
+        var audience = _config["Jwt:Audience"] ?? _config["Jwt__Audience"] ?? "PosadaClients";
+        var expiryDays = int.TryParse(_config["Jwt:ExpiryDays"], out var days) ? days : 14;
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         expiresAt = DateTime.UtcNow.AddDays(expiryDays);
 
-        var roleStr = user.Role.ToString();
-
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(ClaimTypes.Email, user.Email),
-            new(JwtRegisteredClaimNames.Email, user.Email),
             new(ClaimTypes.Name, user.FullName),
-            new(JwtRegisteredClaimNames.Name, user.FullName),
+            new(ClaimTypes.Email, user.Email),
             new("username", user.Username),
-            new(ClaimTypes.Role, roleStr),
-            new("role", roleStr),
-            new("Role", roleStr)
+            new(ClaimTypes.Role, user.Role.ToString())
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

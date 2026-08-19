@@ -7,9 +7,6 @@ using Posada.Infrastructure.Data;
 Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
 Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "true");
 
-// Clear default JWT claim type mapping so role claims work correctly
-JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,

@@ -1,4 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,21 +16,20 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var rawConnection = configuration.GetConnectionString("DefaultConnection") 
+        // Database Connection (PostgreSQL or In-Memory fallback)
+        var rawConnectionString = configuration.GetConnectionString("DefaultConnection") 
             ?? configuration["DATABASE_URL"] 
-            ?? configuration["ConnectionStrings__DefaultConnection"]
-            ?? "Host=ep-jolly-wildflower-axfbynbc-pooler.c-4.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_ds3f2aEKnBWN;SSL Mode=Require;Trust Server Certificate=true;";
+            ?? configuration["DefaultConnection"];
 
-        var connectionString = ParsePostgreSqlConnectionString(rawConnection);
+        var connectionString = ParsePostgreSqlConnectionString(rawConnectionString);
 
-        services.AddDbContext<AppDbContext>(options =>
+        if (!string.IsNullOrWhiteSpace(connectionString))
         {
-            options.UseNpgsql(connectionString);
-        });
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+        }
 
-        services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
-
-        // Services
+        // Domain Services
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IRoomService, RoomService>();
@@ -51,8 +49,6 @@ public static class DependencyInjection
         var issuer = configuration["Jwt:Issuer"] ?? configuration["Jwt__Issuer"] ?? "PosadaServer";
         var audience = configuration["Jwt:Audience"] ?? configuration["Jwt__Audience"] ?? "PosadaClients";
 
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -71,8 +67,8 @@ public static class DependencyInjection
                 ValidIssuer = issuer,
                 ValidAudience = audience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-                RoleClaimType = "role",
-                NameClaimType = "name"
+                RoleClaimType = ClaimTypes.Role,
+                NameClaimType = ClaimTypes.NameIdentifier
             };
         });
 
