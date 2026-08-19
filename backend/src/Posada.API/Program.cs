@@ -41,6 +41,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseDeveloperExceptionPage();
+
 // Auto-migrate / Seed DB on startup
 using (var scope = app.Services.CreateScope())
 {
