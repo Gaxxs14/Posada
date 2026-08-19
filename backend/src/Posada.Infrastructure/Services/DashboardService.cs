@@ -19,25 +19,28 @@ public class DashboardService : IDashboardService
 
     public async Task<ApiResponse<DashboardStatsDto>> GetDashboardStatsAsync()
     {
-        var totalRooms = await _context.Rooms.CountAsync();
-        var availableRooms = await _context.Rooms.CountAsync(r => r.Status == RoomStatus.Available);
-        var occupiedRooms = await _context.Rooms.CountAsync(r => r.Status == RoomStatus.Occupied);
-        var cleaningRooms = await _context.Rooms.CountAsync(r => r.Status == RoomStatus.NeedsCleaning);
-        var maintenanceRooms = await _context.Rooms.CountAsync(r => r.Status == RoomStatus.UnderMaintenance);
+        var totalRooms = await _context.Rooms.CountAsync(r => r.IsActive);
+        var availableRooms = await _context.Rooms.CountAsync(r => r.Status == RoomStatus.Available && r.IsActive);
+        var occupiedRooms = await _context.Rooms.CountAsync(r => r.Status == RoomStatus.Occupied && r.IsActive);
+        var cleaningRooms = await _context.Rooms.CountAsync(r => r.Status == RoomStatus.NeedsCleaning && r.IsActive);
+        var maintenanceRooms = await _context.Rooms.CountAsync(r => r.Status == RoomStatus.UnderMaintenance && r.IsActive);
 
         decimal occupancyRate = totalRooms > 0 ? ((decimal)occupiedRooms / totalRooms) * 100m : 0m;
 
         var pendingBookings = await _context.Bookings.CountAsync(b => b.Status == BookingStatus.Pending);
 
-        var today = DateTime.UtcNow.Date;
-        var activeCheckInsToday = await _context.Bookings.CountAsync(b => b.CheckInDate.Date == today && b.Status == BookingStatus.Confirmed);
-        var expectedCheckOutsToday = await _context.Bookings.CountAsync(b => b.CheckOutDate.Date == today && b.Status == BookingStatus.CheckedIn);
+        var now = DateTime.UtcNow;
+        var todayStart = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
+        var tomorrowStart = todayStart.AddDays(1);
+
+        var activeCheckInsToday = await _context.Bookings.CountAsync(b => b.CheckInDate >= todayStart && b.CheckInDate < tomorrowStart && b.Status == BookingStatus.Confirmed);
+        var expectedCheckOutsToday = await _context.Bookings.CountAsync(b => b.CheckOutDate >= todayStart && b.CheckOutDate < tomorrowStart && b.Status == BookingStatus.CheckedIn);
 
         var settings = await _context.HotelSettings.FirstOrDefaultAsync() ?? new Domain.Entities.HotelSetting();
-        var exchangeRate = settings.UsdExchangeRateBcv;
+        var exchangeRate = settings.UsdExchangeRateBcv > 0 ? settings.UsdExchangeRateBcv : 765.0m;
 
         // Current Month Revenue
-        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var firstDayOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var monthlyPayments = await _context.Payments
             .Where(p => p.Status == PaymentStatus.Approved && p.CreatedAt >= firstDayOfMonth)
             .ToListAsync();
@@ -46,19 +49,19 @@ public class DashboardService : IDashboardService
         var monthlyRevenueVes = monthlyRevenueUsd * exchangeRate;
 
         // Today Revenue
-        var todayRevenueUsd = monthlyPayments.Where(p => p.CreatedAt.Date == today).Sum(p => p.AmountUsd);
+        var todayRevenueUsd = monthlyPayments.Where(p => p.CreatedAt >= todayStart && p.CreatedAt < tomorrowStart).Sum(p => p.AmountUsd);
 
         // Revenue Last 6 Months
         var revenueLast6Months = new List<MonthlyRevenueDto>();
         for (int i = 5; i >= 0; i--)
         {
-            var monthDate = today.AddMonths(-i);
+            var monthDate = now.AddMonths(-i);
             var start = new DateTime(monthDate.Year, monthDate.Month, 1, 0, 0, 0, DateTimeKind.Utc);
             var end = start.AddMonths(1);
 
-            var monthPayments = await _context.Payments
+            var monthPaymentsSum = await _context.Payments
                 .Where(p => p.Status == PaymentStatus.Approved && p.CreatedAt >= start && p.CreatedAt < end)
-                .SumAsync(p => p.AmountUsd);
+                .SumAsync(p => (decimal?)p.AmountUsd) ?? 0m;
 
             var monthBookingsCount = await _context.Bookings
                 .Where(b => b.CreatedAt >= start && b.CreatedAt < end)
@@ -67,23 +70,31 @@ public class DashboardService : IDashboardService
             var monthName = start.ToString("MMM yyyy", CultureInfo.InvariantCulture);
             revenueLast6Months.Add(new MonthlyRevenueDto(
                 monthName,
-                monthPayments,
-                monthPayments * exchangeRate,
+                monthPaymentsSum,
+                monthPaymentsSum * exchangeRate,
                 monthBookingsCount
             ));
         }
 
         // Room status summary
-        var roomsWithActiveBooking = await _context.Rooms
-            .Select(r => new RoomStatusSummaryDto(
+        var allRooms = await _context.Rooms
+            .Include(r => r.Bookings.Where(b => b.Status == BookingStatus.CheckedIn))
+                .ThenInclude(b => b.Guest)
+            .Where(r => r.IsActive)
+            .OrderBy(r => r.RoomNumber)
+            .ToListAsync();
+
+        var roomsWithActiveBooking = allRooms.Select(r =>
+        {
+            var activeBooking = r.Bookings.FirstOrDefault(b => b.Status == BookingStatus.CheckedIn);
+            return new RoomStatusSummaryDto(
                 r.RoomNumber,
                 r.Title,
                 r.Status.ToString(),
-                r.Bookings.Where(b => b.Status == BookingStatus.CheckedIn).Select(b => b.Guest.FullName).FirstOrDefault(),
-                r.Bookings.Where(b => b.Status == BookingStatus.CheckedIn).Select(b => (DateTime?)b.CheckOutDate).FirstOrDefault()
-            ))
-            .OrderBy(r => r.RoomNumber)
-            .ToListAsync();
+                activeBooking?.Guest?.FullName,
+                activeBooking?.CheckOutDate
+            );
+        }).ToList();
 
         var stats = new DashboardStatsDto(
             totalRooms,
