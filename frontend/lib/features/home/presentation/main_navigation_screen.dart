@@ -132,7 +132,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Posada Pro',
+                                  'Posada',
                                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryBlue),
                                 ),
                                 Text(

@@ -1,19 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_endpoints.dart';
+import '../../../core/storage/app_storage.dart';
 import '../models/user_model.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final apiClient = ref.watch(apiClientProvider);
-  final storage = ref.watch(secureStorageProvider);
+  final storage = ref.watch(appStorageProvider);
   return AuthRepository(apiClient.dio, storage);
 });
 
 class AuthRepository {
   final Dio _dio;
-  final FlutterSecureStorage _storage;
+  final AppStorage _storage;
 
   AuthRepository(this._dio, this._storage);
 
@@ -28,9 +28,9 @@ class AuthRepository {
         final data = response.data['data'];
         final user = UserModel.fromJson(data);
         if (user.token != null) {
-          await _storage.write(key: 'jwt_token', value: user.token);
-          await _storage.write(key: 'user_role', value: user.role);
-          await _storage.write(key: 'user_name', value: user.fullName);
+          await _storage.write('jwt_token', user.token!);
+          await _storage.write('user_role', user.role);
+          await _storage.write('user_name', user.fullName);
         }
         return user;
       } else {
@@ -65,9 +65,9 @@ class AuthRepository {
         final data = response.data['data'];
         final user = UserModel.fromJson(data);
         if (user.token != null) {
-          await _storage.write(key: 'jwt_token', value: user.token);
-          await _storage.write(key: 'user_role', value: user.role);
-          await _storage.write(key: 'user_name', value: user.fullName);
+          await _storage.write('jwt_token', user.token!);
+          await _storage.write('user_role', user.role);
+          await _storage.write('user_name', user.fullName);
         }
         return user;
       } else {
@@ -80,10 +80,10 @@ class AuthRepository {
   }
 
   Future<UserModel?> checkAuthStatus() async {
-    final token = await _storage.read(key: 'jwt_token');
-    if (token == null || token.isEmpty) return null;
-
     try {
+      final token = await _storage.read('jwt_token');
+      if (token == null || token.isEmpty) return null;
+
       final response = await _dio.get(ApiEndpoints.profile);
       if (response.data['success'] == true) {
         final data = response.data['data'];
@@ -94,6 +94,6 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
-    await _storage.deleteAll();
+    await _storage.clearAll();
   }
 }

@@ -1,19 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../storage/app_storage.dart';
 import 'api_endpoints.dart';
 
-final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
-  return const FlutterSecureStorage();
-});
-
 final apiClientProvider = Provider<ApiClient>((ref) {
-  final storage = ref.watch(secureStorageProvider);
+  final storage = ref.watch(appStorageProvider);
   return ApiClient(storage);
 });
 
 class ApiClient {
-  final FlutterSecureStorage _storage;
+  final AppStorage _storage;
   late final Dio dio;
 
   ApiClient(this._storage) {
@@ -32,10 +28,12 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _storage.read(key: 'jwt_token');
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
+          try {
+            final token = await _storage.read('jwt_token');
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
+          } catch (_) {}
           return handler.next(options);
         },
         onError: (DioException error, handler) {

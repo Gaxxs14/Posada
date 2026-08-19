@@ -13,8 +13,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _identifierController = TextEditingController(text: 'admin');
-  final _passwordController = TextEditingController(text: 'Admin12345*');
+  final _identifierController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
@@ -92,11 +92,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Posada Pro',
+                    'Posada',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontSize: 28,
+                          fontSize: 32,
                           color: AppTheme.primaryBlue,
+                          fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: 6),
@@ -106,29 +107,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
                   ),
                   const SizedBox(height: 32),
-
-                  // Quick Demo Credentials hint
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentGold.withAlpha(25),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.accentGold.withAlpha(80)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          '💡 Cuentas de Acceso Rápido:',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                        ),
-                        SizedBox(height: 4),
-                        Text('• Admin: admin / Admin12345*', style: TextStyle(fontSize: 11)),
-                        Text('• Huésped: julimer / Cliente123*', style: TextStyle(fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
 
                   // Identifier field
                   TextFormField(
