@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/api/api_client.dart';
+import '../../../core/api/api_endpoints.dart';
 import '../../../core/theme/app_theme.dart';
 import 'auth_controller.dart';
 import 'register_screen.dart';
@@ -16,6 +18,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  String? _errorMessage;
+  bool _isTestingConnection = false;
+  String? _connectionStatus;
 
   @override
   void dispose() {
@@ -25,6 +30,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _submit() async {
+    setState(() => _errorMessage = null);
     if (!_formKey.currentState!.validate()) return;
 
     final success = await ref.read(authStateProvider.notifier).login(
@@ -36,13 +42,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (!success) {
       final error = ref.read(authStateProvider).errorMessage ?? 'Usuario o contraseña incorrectos';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          backgroundColor: AppTheme.errorRed,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      setState(() => _errorMessage = error);
+    }
+  }
+
+  void _testServerConnection() async {
+    setState(() {
+      _isTestingConnection = true;
+      _connectionStatus = 'Probando conexión con ${ApiEndpoints.baseUrl}...';
+    });
+
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final res = await apiClient.dio.get('/health');
+      if (mounted) {
+        setState(() {
+          _isTestingConnection = false;
+          _connectionStatus = 'Conexión exitosa: ${res.data['system'] ?? 'Online'} (${res.data['status']})';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isTestingConnection = false;
+          _connectionStatus = 'Error de conexión: $e';
+        });
+      }
     }
   }
 
@@ -77,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo / Header
+                  // Logo
                   Container(
                     width: 72,
                     height: 72,
@@ -107,7 +132,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+
+                  // Error Banner
+                  if (_errorMessage != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.errorRed.withAlpha(20),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.errorRed.withAlpha(50)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: AppTheme.errorRed, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(color: AppTheme.errorRed, fontSize: 13, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // Identifier field
                   TextFormField(
@@ -137,7 +187,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         val == null || val.isEmpty ? 'Ingresa tu contraseña' : null,
                     onFieldSubmitted: (_) => _submit(),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
                   // Submit Button
                   ElevatedButton(
@@ -173,6 +223,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  // Diagnostic Connection Button
+                  TextButton.icon(
+                    icon: _isTestingConnection
+                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.cloud_sync_outlined, size: 16),
+                    label: const Text('Comprobar Conexión con el Servidor', style: TextStyle(fontSize: 12)),
+                    onPressed: _isTestingConnection ? null : _testServerConnection,
+                  ),
+                  if (_connectionStatus != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        _connectionStatus!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _connectionStatus!.contains('exitosa') ? AppTheme.successGreen : AppTheme.errorRed,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
