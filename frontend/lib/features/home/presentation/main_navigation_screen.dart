@@ -29,7 +29,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     final user = ref.watch(authStateProvider).user;
     final isStaff = user?.isStaff ?? false;
     final isAdmin = user?.role == 'Admin';
-    final isDesktop = MediaQuery.of(context).size.width > 800;
+    final isDesktop = MediaQuery.of(context).size.width > 900;
 
     // Define navigation destinations based on role
     final List<NavigationDestinationItem> items = isStaff
@@ -129,104 +129,154 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       body: isDesktop
           ? Row(
               children: [
-                // Desktop Navigation Sidebar
+                // Luxury Dark Navy Desktop Navigation Sidebar
                 Container(
-                  width: 250,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border(right: BorderSide(color: Colors.grey.shade200)),
+                  width: 270,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF07172B),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        offset: Offset(2, 0),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
-                      // Sidebar Header
+                      // Sidebar Header with Gold accents
                       Container(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                         alignment: Alignment.centerLeft,
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryBlue.withAlpha(25),
-                                borderRadius: BorderRadius.circular(12),
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFC5A059), Color(0xFFDFBA73)],
+                                ),
+                                borderRadius: BorderRadius.circular(14),
                               ),
-                              child: const Icon(Icons.hotel, color: AppTheme.primaryBlue, size: 24),
+                              child: const Icon(Icons.hotel_class, color: Color(0xFF07172B), size: 24),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 14),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Posada',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryBlue),
+                                  'Posada Resort',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.white,
+                                    letterSpacing: 0.3,
+                                  ),
                                 ),
-                                Text(
-                                  isStaff ? 'Panel Staff' : 'Portal Huésped',
-                                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.successGreen,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      isStaff ? 'Panel Staff' : 'Portal Huésped',
+                                      style: TextStyle(color: Colors.white.withAlpha(160), fontSize: 11),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      const Divider(height: 1),
+                      Divider(color: Colors.white.withAlpha(20), height: 1),
 
                       // Nav Items
                       Expanded(
                         child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                           itemCount: items.length,
                           itemBuilder: (context, idx) {
                             final item = items[idx];
                             final isSelected = _selectedIndex == idx;
-                            return ListTile(
-                              leading: Icon(
-                                isSelected ? item.selectedIcon : item.icon,
-                                color: isSelected ? AppTheme.primaryBlue : AppTheme.textMuted,
-                              ),
-                              title: Text(
-                                item.title,
-                                style: TextStyle(
-                                  color: isSelected ? AppTheme.primaryBlue : AppTheme.textDark,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 4),
+                              child: ListTile(
+                                leading: Icon(
+                                  isSelected ? item.selectedIcon : item.icon,
+                                  color: isSelected ? const Color(0xFFDFBA73) : Colors.white60,
+                                  size: 22,
                                 ),
+                                title: Text(
+                                  item.title,
+                                  style: TextStyle(
+                                    color: isSelected ? Colors.white : Colors.white70,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                selected: isSelected,
+                                selectedTileColor: Colors.white.withAlpha(18),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: isSelected
+                                      ? BorderSide(color: const Color(0xFFC5A059).withAlpha(100), width: 1)
+                                      : BorderSide.none,
+                                ),
+                                onTap: () => setState(() => _selectedIndex = idx),
                               ),
-                              selected: isSelected,
-                              selectedTileColor: AppTheme.primaryBlue.withAlpha(20),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              onTap: () => setState(() => _selectedIndex = idx),
                             );
                           },
                         ),
                       ),
 
                       // User Info & Logout Button
-                      const Divider(height: 1),
-                      ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppTheme.secondaryTeal.withAlpha(30),
-                          child: Text(
-                            user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'U',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.secondaryTeal),
-                          ),
-                        ),
-                        title: Text(
-                          user?.fullName ?? 'Usuario',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          user?.role ?? '',
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.logout, color: AppTheme.errorRed, size: 20),
-                          tooltip: 'Cerrar Sesión',
-                          onPressed: () => ref.read(authStateProvider.notifier).logout(),
+                      Divider(color: Colors.white.withAlpha(20), height: 1),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: const Color(0xFFC5A059),
+                              radius: 20,
+                              child: Text(
+                                user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'U',
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF07172B)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    user?.fullName ?? 'Usuario',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
+                                  Text(
+                                    user?.role ?? '',
+                                    style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(150)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.logout, color: AppTheme.errorRed, size: 20),
+                              tooltip: 'Cerrar Sesión',
+                              onPressed: () => ref.read(authStateProvider.notifier).logout(),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                     ],
                   ),
                 ),
@@ -246,7 +296,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
               destinations: items.map((item) {
                 return NavigationDestination(
                   icon: Icon(item.icon),
-                  selectedIcon: Icon(item.selectedIcon, color: AppTheme.primaryBlue),
+                  selectedIcon: Icon(item.selectedIcon, color: AppTheme.primaryNavy),
                   label: item.title,
                 );
               }).toList(),
