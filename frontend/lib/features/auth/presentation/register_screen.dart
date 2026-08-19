@@ -43,12 +43,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pop(); // Return to root, where state will switch to Home
+      Navigator.of(context).pop();
     } else {
-      final error = ref.read(authStateProvider).error;
+      final error = ref.read(authStateProvider).errorMessage ?? 'Error al registrar usuario';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.toString().replaceAll('Exception: ', '')),
+          content: Text(error),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -58,7 +58,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final isLoading = authState.isLoading;
+    final isSubmitting = authState.isSubmitting;
 
     return Scaffold(
       appBar: AppBar(
@@ -100,7 +100,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
+                  const Text(
                     'Crea tu cuenta para reservar habitaciones al instante',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
@@ -171,8 +171,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 24),
 
                   ElevatedButton(
-                    onPressed: isLoading ? null : _submit,
-                    child: isLoading
+                    onPressed: isSubmitting ? null : _submit,
+                    child: isSubmitting
                         ? const SizedBox(
                             width: 24,
                             height: 24,

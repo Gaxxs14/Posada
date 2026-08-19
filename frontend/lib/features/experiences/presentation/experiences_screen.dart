@@ -22,7 +22,7 @@ class ExperiencesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final experiencesAsync = ref.watch(experiencesProvider);
-    final user = ref.watch(authStateProvider).value;
+    final user = ref.watch(authStateProvider).user;
     final isStaff = user?.isStaff ?? false;
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width > 900;

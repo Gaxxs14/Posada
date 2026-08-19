@@ -17,12 +17,12 @@ class PosadaApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
 
-    return MaterialApp(
-      title: 'Posada Pro - Sistema Hotelero y Reservas',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: authState.when(
-        loading: () => const Scaffold(
+    if (authState.isInitialLoading) {
+      return MaterialApp(
+        title: 'Posada - Sistema Hotelero',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        home: const Scaffold(
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -34,14 +34,16 @@ class PosadaApp extends ConsumerWidget {
             ),
           ),
         ),
-        error: (error, stackTrace) => const LoginScreen(),
-        data: (user) {
-          if (user != null) {
-            return const MainNavigationScreen();
-          }
-          return const LoginScreen();
-        },
-      ),
+      );
+    }
+
+    return MaterialApp(
+      title: 'Posada - Sistema Hotelero',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      home: authState.user != null
+          ? const MainNavigationScreen()
+          : const LoginScreen(),
     );
   }
 }

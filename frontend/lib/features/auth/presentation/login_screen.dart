@@ -35,11 +35,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
 
     if (!success) {
-      final error = ref.read(authStateProvider).error;
+      final error = ref.read(authStateProvider).errorMessage ?? 'Usuario o contraseña incorrectos';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.toString().replaceAll('Exception: ', '')),
+          content: Text(error),
           backgroundColor: AppTheme.errorRed,
+          duration: const Duration(seconds: 4),
         ),
       );
     }
@@ -48,7 +49,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final isLoading = authState.isLoading;
+    final isSubmitting = authState.isSubmitting;
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width > 800;
 
@@ -101,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
+                  const Text(
                     'Sistema Integral de Gestión y Reservas',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
@@ -140,8 +141,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   // Submit Button
                   ElevatedButton(
-                    onPressed: isLoading ? null : _submit,
-                    child: isLoading
+                    onPressed: isSubmitting ? null : _submit,
+                    child: isSubmitting
                         ? const SizedBox(
                             width: 24,
                             height: 24,
@@ -162,7 +163,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             MaterialPageRoute(builder: (_) => const RegisterScreen()),
                           );
                         },
-                        child: Text(
+                        child: const Text(
                           'Regístrate aquí',
                           style: TextStyle(
                             color: AppTheme.primaryBlue,

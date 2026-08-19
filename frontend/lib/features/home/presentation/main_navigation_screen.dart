@@ -26,7 +26,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authStateProvider).value;
+    final user = ref.watch(authStateProvider).user;
     final isStaff = user?.isStaff ?? false;
     final isAdmin = user?.role == 'Admin';
     final isDesktop = MediaQuery.of(context).size.width > 800;
