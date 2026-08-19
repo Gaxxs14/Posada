@@ -15,7 +15,7 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpGet("stats")]
     public async Task<IActionResult> GetStats()
     {

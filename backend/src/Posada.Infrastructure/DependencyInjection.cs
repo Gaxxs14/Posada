@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +51,8 @@ public static class DependencyInjection
         var issuer = configuration["Jwt:Issuer"] ?? configuration["Jwt__Issuer"] ?? "PosadaServer";
         var audience = configuration["Jwt:Audience"] ?? configuration["Jwt__Audience"] ?? "PosadaClients";
 
+        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -56,6 +60,8 @@ public static class DependencyInjection
         })
         .AddJwtBearer(options =>
         {
+            options.RequireHttpsMetadata = false;
+            options.SaveToken = true;
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,

@@ -29,13 +29,20 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
         expiresAt = DateTime.UtcNow.AddDays(expiryDays);
 
+        var roleStr = user.Role.ToString();
+
         var claims = new List<Claim>
         {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email),
             new(JwtRegisteredClaimNames.Email, user.Email),
+            new(ClaimTypes.Name, user.FullName),
             new(JwtRegisteredClaimNames.Name, user.FullName),
             new("username", user.Username),
-            new(ClaimTypes.Role, user.Role.ToString())
+            new(ClaimTypes.Role, roleStr),
+            new("role", roleStr),
+            new("Role", roleStr)
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
