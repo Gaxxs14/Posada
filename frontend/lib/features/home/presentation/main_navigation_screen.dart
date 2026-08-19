@@ -33,90 +33,77 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     final isAdmin = user?.role == 'Admin';
     final isDesktop = MediaQuery.of(context).size.width > 960;
 
-    // Define navigation destinations based on role
+    // Define navigation destinations with standard solid Material Icons
     final List<NavigationDestinationItem> items = isStaff
         ? [
             NavigationDestinationItem(
               title: 'Dashboard',
-              icon: Icons.dashboard_outlined,
-              selectedIcon: Icons.dashboard_rounded,
+              icon: Icons.dashboard,
               screen: const AdminDashboardScreen(),
             ),
             NavigationDestinationItem(
               title: 'Recepción',
-              icon: Icons.room_service_outlined,
-              selectedIcon: Icons.room_service_rounded,
+              icon: Icons.room_service,
               screen: const ReceptionScreen(),
             ),
             NavigationDestinationItem(
               title: 'Habitaciones',
-              icon: Icons.hotel_outlined,
-              selectedIcon: Icons.hotel_rounded,
+              icon: Icons.hotel,
               screen: isAdmin ? const RoomManagementScreen() : const RoomCatalogScreen(),
             ),
             if (isAdmin)
               NavigationDestinationItem(
                 title: 'Personal',
-                icon: Icons.badge_outlined,
-                selectedIcon: Icons.badge_rounded,
+                icon: Icons.people,
                 screen: const StaffManagementScreen(),
               ),
             NavigationDestinationItem(
               title: 'Limpieza',
-              icon: Icons.cleaning_services_outlined,
-              selectedIcon: Icons.cleaning_services_rounded,
+              icon: Icons.cleaning_services,
               screen: const HousekeepingScreen(),
             ),
             NavigationDestinationItem(
-              title: 'Tours & Experiencias',
-              icon: Icons.sailing_outlined,
-              selectedIcon: Icons.sailing_rounded,
+              title: 'Tours & Paseos',
+              icon: Icons.sailing,
               screen: const ExperiencesScreen(),
             ),
             if (isAdmin)
               NavigationDestinationItem(
-                title: 'Auditoría & Reportes',
-                icon: Icons.analytics_outlined,
-                selectedIcon: Icons.analytics_rounded,
+                title: 'Auditoría',
+                icon: Icons.bar_chart,
                 screen: const ReportsScreen(),
               ),
             NavigationDestinationItem(
               title: 'Concierge IA',
-              icon: Icons.auto_awesome_outlined,
-              selectedIcon: Icons.auto_awesome_rounded,
+              icon: Icons.chat,
               screen: const AiConciergeScreen(),
             ),
             if (isAdmin)
               NavigationDestinationItem(
                 title: 'Configuración',
-                icon: Icons.tune_outlined,
-                selectedIcon: Icons.tune_rounded,
+                icon: Icons.settings,
                 screen: const HotelSettingsScreen(),
               ),
           ]
         : [
             NavigationDestinationItem(
               title: 'Habitaciones',
-              icon: Icons.hotel_outlined,
-              selectedIcon: Icons.hotel_rounded,
+              icon: Icons.hotel,
               screen: const RoomCatalogScreen(),
             ),
             NavigationDestinationItem(
-              title: 'Tours & Paseos',
-              icon: Icons.sailing_outlined,
-              selectedIcon: Icons.sailing_rounded,
+              title: 'Tours',
+              icon: Icons.sailing,
               screen: const ExperiencesScreen(),
             ),
             NavigationDestinationItem(
               title: 'Mis Reservas',
-              icon: Icons.confirmation_number_outlined,
-              selectedIcon: Icons.confirmation_number_rounded,
+              icon: Icons.confirmation_number,
               screen: const MyBookingsScreen(),
             ),
             NavigationDestinationItem(
               title: 'Concierge IA',
-              icon: Icons.auto_awesome_outlined,
-              selectedIcon: Icons.auto_awesome_rounded,
+              icon: Icons.chat,
               screen: const AiConciergeScreen(),
             ),
           ];
@@ -131,52 +118,47 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       body: isDesktop
           ? Row(
               children: [
-                // Ultra-Luxury Sidebar
+                // Clean Modern Desktop Sidebar
                 Container(
-                  width: 280,
+                  width: 270,
                   decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF051120), Color(0xFF091F38), Color(0xFF07172B)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
+                    color: Color(0xFF0F172A),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black38,
-                        blurRadius: 20,
-                        offset: Offset(4, 0),
+                        color: Color(0x1A000000),
+                        blurRadius: 16,
+                        offset: Offset(2, 0),
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
-                      // Resort Brand Crest & Title
+                      // Header Logo & Brand
                       Container(
-                        padding: const EdgeInsets.fromLTRB(22, 28, 22, 22),
+                        padding: const EdgeInsets.fromLTRB(22, 26, 22, 20),
                         alignment: Alignment.centerLeft,
                         child: Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                gradient: AppTheme.goldGradient,
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: AppTheme.goldGlowShadow,
+                                color: AppTheme.primaryAccent,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(Icons.hotel_class, color: Color(0xFF051120), size: 22),
+                              child: const Icon(Icons.hotel, color: Colors.white, size: 22),
                             ),
-                            const SizedBox(width: 14),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     'Posada Resort',
-                                    style: GoogleFonts.playfairDisplay(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 17,
                                       color: Colors.white,
-                                      letterSpacing: 0.5,
+                                      letterSpacing: -0.3,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -192,9 +174,9 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        isStaff ? 'Suite Administrativa' : 'Portal Huésped VIP',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: AppTheme.accentGoldLight.withAlpha(200),
+                                        isStaff ? 'Consola de Gestión' : 'Portal Huésped',
+                                        style: const TextStyle(
+                                          color: Color(0xFF94A3B8),
                                           fontSize: 11,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -208,12 +190,12 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                         ),
                       ),
 
-                      Divider(color: Colors.white.withAlpha(15), height: 1),
+                      const Divider(color: Color(0xFF1E293B), height: 1),
 
                       // Navigation Items
                       Expanded(
                         child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
                           itemCount: items.length,
                           itemBuilder: (context, idx) {
                             final item = items[idx];
@@ -224,47 +206,33 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  borderRadius: BorderRadius.circular(14),
+                                  borderRadius: BorderRadius.circular(10),
                                   onTap: () => setState(() => _selectedIndex = idx),
                                   child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                                    duration: const Duration(milliseconds: 150),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                     decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? AppTheme.accentGold.withAlpha(25)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: isSelected
-                                          ? Border.all(color: AppTheme.accentGold.withAlpha(120), width: 1)
-                                          : Border.all(color: Colors.transparent),
+                                      color: isSelected ? AppTheme.primaryAccent : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Row(
                                       children: [
                                         Icon(
-                                          isSelected ? item.selectedIcon : item.icon,
-                                          color: isSelected ? AppTheme.accentGoldLight : Colors.white60,
-                                          size: 20,
+                                          item.icon,
+                                          color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+                                          size: 19,
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Text(
                                             item.title,
                                             style: GoogleFonts.plusJakartaSans(
-                                              color: isSelected ? Colors.white : Colors.white70,
+                                              color: isSelected ? Colors.white : const Color(0xFFCBD5E1),
                                               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                                               fontSize: 13.5,
                                             ),
                                           ),
                                         ),
-                                        if (isSelected)
-                                          Container(
-                                            width: 5,
-                                            height: 18,
-                                            decoration: BoxDecoration(
-                                              gradient: AppTheme.goldGradient,
-                                              borderRadius: BorderRadius.circular(3),
-                                            ),
-                                          ),
                                       ],
                                     ),
                                   ),
@@ -277,27 +245,26 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
                       // BCV Official Rate Widget in Sidebar Footer
                       Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(10),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppTheme.accentGold.withAlpha(50)),
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.currency_exchange, color: AppTheme.accentGold, size: 16),
+                            const Icon(Icons.currency_exchange, color: AppTheme.accentEmerald, size: 16),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     'TASA OFICIAL BCV',
                                     style: TextStyle(
                                       fontSize: 9.5,
                                       fontWeight: FontWeight.bold,
-                                      color: AppTheme.accentGoldLight.withAlpha(200),
+                                      color: Color(0xFF94A3B8),
                                       letterSpacing: 0.5,
                                     ),
                                   ),
@@ -316,28 +283,22 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                         ),
                       ),
 
-                      Divider(color: Colors.white.withAlpha(15), height: 1),
+                      const Divider(color: Color(0xFF1E293B), height: 1),
 
                       // User Profile Bar
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         child: Row(
                           children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                gradient: AppTheme.goldGradient,
-                                shape: BoxShape.circle,
-                                boxShadow: AppTheme.goldGlowShadow,
-                              ),
-                              alignment: Alignment.center,
+                            CircleAvatar(
+                              backgroundColor: AppTheme.primaryAccent,
+                              radius: 17,
                               child: Text(
                                 user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'U',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF051120), fontSize: 15),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,17 +307,17 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                                     user?.fullName ?? 'Usuario',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
                                   ),
                                   Text(
                                     user?.role == 'Admin' ? 'Administrador' : (user?.role == 'Receptionist' ? 'Recepción' : 'Huésped'),
-                                    style: TextStyle(fontSize: 11, color: AppTheme.accentGoldLight.withAlpha(180)),
+                                    style: const TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8)),
                                   ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.logout_rounded, color: AppTheme.errorRed, size: 20),
+                              icon: const Icon(Icons.logout, color: AppTheme.errorRed, size: 18),
                               tooltip: 'Cerrar Sesión',
                               onPressed: () => ref.read(authStateProvider.notifier).logout(),
                             ),
@@ -378,19 +339,19 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             )
           : currentScreen,
 
-      // Mobile Bottom Navigation Bar (Ultra-Luxury floating style)
+      // Mobile Bottom Navigation Bar (Clean luminous style)
       bottomNavigationBar: isDesktop
           ? null
           : Container(
               decoration: const BoxDecoration(
-                color: Color(0xFF061325),
+                color: Color(0xFF0F172A),
                 boxShadow: [
-                  BoxShadow(color: Colors.black26, blurRadius: 16, offset: Offset(0, -4)),
+                  BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, -2)),
                 ],
               ),
               child: SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: items.asMap().entries.map((entry) {
@@ -400,30 +361,29 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
                       return InkWell(
                         onTap: () => setState(() => _selectedIndex = idx),
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(10),
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          duration: const Duration(milliseconds: 150),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppTheme.accentGold.withAlpha(30) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(14),
-                            border: isSelected ? Border.all(color: AppTheme.accentGold.withAlpha(80)) : null,
+                            color: isSelected ? AppTheme.primaryAccent : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                isSelected ? item.selectedIcon : item.icon,
-                                color: isSelected ? AppTheme.accentGoldLight : Colors.white60,
-                                size: 22,
+                                item.icon,
+                                color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+                                size: 20,
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 3),
                               Text(
-                                item.title.split(' ')[0], // Single word for mobile
+                                item.title.split(' ')[0],
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: isSelected ? Colors.white : Colors.white60,
+                                  color: isSelected ? Colors.white : const Color(0xFF94A3B8),
                                 ),
                               ),
                             ],
@@ -442,13 +402,11 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 class NavigationDestinationItem {
   final String title;
   final IconData icon;
-  final IconData selectedIcon;
   final Widget screen;
 
   NavigationDestinationItem({
     required this.title,
     required this.icon,
-    required this.selectedIcon,
     required this.screen,
   });
 }

@@ -34,7 +34,7 @@ class AdminDashboardScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: AppTheme.accentGold),
+              CircularProgressIndicator(color: AppTheme.primaryAccent),
               SizedBox(height: 16),
               Text('Cargando métricas en tiempo real...', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
             ],
@@ -46,22 +46,23 @@ class AdminDashboardScreen extends ConsumerWidget {
             constraints: const BoxConstraints(maxWidth: 480),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: AppTheme.luxuryCardShadow,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppTheme.borderLight),
+              boxShadow: AppTheme.cleanCardShadow,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppTheme.errorRed.withAlpha(20),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.cloud_off, size: 40, color: AppTheme.errorRed),
+                  child: const Icon(Icons.cloud_off, size: 36, color: AppTheme.errorRed),
                 ),
                 const SizedBox(height: 16),
-                Text('Error al sincronizar datos', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text('Error al sincronizar datos', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text(error.toString().replaceAll('Exception: ', ''), textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.textMuted, fontSize: 13)),
                 const SizedBox(height: 20),
@@ -76,23 +77,23 @@ class AdminDashboardScreen extends ConsumerWidget {
         ),
         data: (stats) => RefreshIndicator(
           onRefresh: () async => ref.invalidate(dashboardStatsProvider),
-          color: AppTheme.accentGold,
+          color: AppTheme.primaryAccent,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.all(isDesktop ? 32 : 18),
+            padding: EdgeInsets.all(isDesktop ? 28 : 16),
             child: Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 1350),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // 1. Luxury Welcome Hero Banner
+                    // 1. Clean Luminous Welcome Hero
                     _buildWelcomeHero(context, user?.fullName ?? 'Administrador', stats),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 22),
 
                     // 2. Bento-Grid KPI Cards
                     _buildKpiGrid(isDesktop, stats),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
                     // 3. Analytics Chart + Room Status Breakdown
                     if (isDesktop)
@@ -100,17 +101,17 @@ class AdminDashboardScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(flex: 3, child: _buildRevenueChartCard(stats)),
-                          const SizedBox(width: 24),
+                          const SizedBox(width: 22),
                           Expanded(flex: 2, child: _buildRoomStatusCard(stats)),
                         ],
                       )
                     else ...[
                       _buildRevenueChartCard(stats),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 18),
                       _buildRoomStatusCard(stats),
                     ],
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
                     // 4. Live Rooms Summary Strip
                     _buildLiveRoomsSummary(stats),
@@ -138,17 +139,11 @@ class AdminDashboardScreen extends ConsumerWidget {
     final bcvRate = (stats['usdExchangeRateBcv'] as num?)?.toDouble() ?? 765.0;
 
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.all(26),
       decoration: BoxDecoration(
-        gradient: AppTheme.navyHeroGradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF061325).withAlpha(60),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppTheme.heroShadow,
       ),
       child: Row(
         children: [
@@ -156,106 +151,76 @@ class AdminDashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Tag with Gold star
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppTheme.accentGold.withAlpha(40),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppTheme.accentGold.withAlpha(120)),
+                    color: Colors.white.withAlpha(20),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.stars_rounded, color: AppTheme.accentGold, size: 14),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Suite Ejecutiva • $today',
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                      ),
-                    ],
+                  child: Text(
+                    'Panel de Control • $today',
+                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5, fontWeight: FontWeight.w600),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 Text(
-                  '¡Hola, $userName!',
-                  style: GoogleFonts.playfairDisplay(
+                  '¡Bienvenido, $userName!',
+                  style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
-                  'Hoy la ocupación del resort se encuentra al ${occRate.toStringAsFixed(1)}% ($occRooms de $totalRooms suites activas).',
-                  style: TextStyle(color: Colors.white.withAlpha(210), fontSize: 14),
+                  'Ocupación actual al ${occRate.toStringAsFixed(1)}% ($occRooms de $totalRooms habitaciones ocupadas).',
+                  style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 13.5),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
-                // Mini Occupancy Progress Bar
                 Container(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Nivel de Ocupación', style: TextStyle(color: Colors.white.withAlpha(160), fontSize: 11)),
-                          Text('${occRate.toStringAsFixed(0)}%', style: const TextStyle(color: AppTheme.accentGoldLight, fontSize: 11, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: totalRooms > 0 ? occRooms / totalRooms : 0.0,
-                          minHeight: 7,
-                          backgroundColor: Colors.white.withAlpha(30),
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentGoldLight),
-                        ),
-                      ),
-                    ],
+                  constraints: const BoxConstraints(maxWidth: 380),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: totalRooms > 0 ? occRooms / totalRooms : 0.0,
+                      minHeight: 6,
+                      backgroundColor: const Color(0xFF1E293B),
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentEmerald),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Right Gold BCV Pill
+          // BCV Rate Pill
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(15),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppTheme.accentGold.withAlpha(80)),
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF334155)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.verified, color: AppTheme.accentGold, size: 14),
-                    const SizedBox(width: 6),
-                    Text(
-                      'TASA BCV OFICIAL',
-                      style: TextStyle(
-                        color: AppTheme.accentGoldLight.withAlpha(220),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
+                const Text(
+                  'TASA BCV OFICIAL',
+                  style: TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   CurrencyFormatter.formatVes(bcvRate),
-                  style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
                 ),
-                Text('Bs. / USD', style: TextStyle(color: Colors.white.withAlpha(140), fontSize: 11)),
+                const Text('Bs. / USD', style: TextStyle(color: Color(0xFF64748B), fontSize: 10.5)),
               ],
             ),
           ),
@@ -286,41 +251,37 @@ class AdminDashboardScreen extends ConsumerWidget {
               width: width,
               title: 'Tasa de Ocupación',
               value: '${occRate.toStringAsFixed(1)}%',
-              subtitle: '$occupiedRooms de $totalRooms habitaciones',
-              icon: Icons.hotel_rounded,
-              iconBgColor: AppTheme.primaryBlue,
-              accentColor: AppTheme.primaryBlue,
-              badgeText: 'En Vivo',
+              subtitle: '$occupiedRooms de $totalRooms suites',
+              icon: Icons.hotel,
+              iconBgColor: AppTheme.primaryAccent,
+              accentColor: AppTheme.primaryAccent,
             ),
             _buildStatCard(
               width: width,
-              title: 'Ingresos de Agosto (USD)',
+              title: 'Ingresos del Mes (USD)',
               value: CurrencyFormatter.formatUsd(revenueUsd),
               subtitle: '${CurrencyFormatter.formatVes(revenueVes)} Bs. BCV',
-              icon: Icons.monetization_on_rounded,
-              iconBgColor: AppTheme.successGreen,
-              accentColor: AppTheme.successGreen,
-              badgeText: '+18% vs mes ant.',
+              icon: Icons.attach_money,
+              iconBgColor: AppTheme.accentEmerald,
+              accentColor: AppTheme.accentEmerald,
             ),
             _buildStatCard(
               width: width,
               title: 'Reservas por Aprobar',
               value: '$pendingCount',
-              subtitle: 'Requiere atención en recepción',
-              icon: Icons.pending_actions_rounded,
+              subtitle: 'Requiere atención',
+              icon: Icons.pending_actions,
               iconBgColor: AppTheme.warningOrange,
               accentColor: AppTheme.warningOrange,
-              badgeText: pendingCount > 0 ? 'Acción Requerida' : 'Al Día',
             ),
             _buildStatCard(
               width: width,
               title: 'Habitaciones Libres',
               value: '$availableRooms',
-              subtitle: 'Listas para check-in hoy',
-              icon: Icons.door_front_door_rounded,
-              iconBgColor: AppTheme.caribbeanTeal,
-              accentColor: AppTheme.caribbeanTeal,
-              badgeText: 'Disponibles',
+              subtitle: 'Disponibles hoy',
+              icon: Icons.check_circle,
+              iconBgColor: AppTheme.accentAzure,
+              accentColor: AppTheme.accentAzure,
             ),
           ],
         );
@@ -336,16 +297,15 @@ class AdminDashboardScreen extends ConsumerWidget {
     required IconData icon,
     required Color iconBgColor,
     required Color accentColor,
-    required String badgeText,
   }) {
     return Container(
       width: width,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: AppTheme.luxuryCardShadow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderLight),
+        boxShadow: AppTheme.cleanCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,39 +314,36 @@ class AdminDashboardScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: iconBgColor.withAlpha(20),
-                  borderRadius: BorderRadius.circular(14),
+                  color: iconBgColor.withAlpha(18),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: iconBgColor, size: 22),
+                child: Icon(icon, color: iconBgColor, size: 20),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: accentColor.withAlpha(18),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppTheme.surfaceSubtle,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  badgeText,
-                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: accentColor),
-                ),
+                child: const Text('En Vivo', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Text(
             value,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
               color: AppTheme.textDark,
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 4),
-          Text(title, style: const TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 6),
+          Text(title, style: const TextStyle(color: AppTheme.textMuted, fontSize: 12.5, fontWeight: FontWeight.w500)),
+          const SizedBox(height: 4),
           Text(subtitle, style: TextStyle(color: accentColor, fontSize: 11.5, fontWeight: FontWeight.w600)),
         ],
       ),
@@ -404,12 +361,12 @@ class AdminDashboardScreen extends ConsumerWidget {
     final chartMaxY = maxRevenue > 0 ? maxRevenue * 1.3 : 100.0;
 
     return Container(
-      padding: const EdgeInsets.all(26),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: AppTheme.luxuryCardShadow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderLight),
+        boxShadow: AppTheme.cleanCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,27 +377,25 @@ class AdminDashboardScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Rendimiento Financiero Semestral', style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 2),
-                  const Text('Facturación en USD y volumen de reservas', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                  Text('Historial de Facturación (USD)', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text('Rendimiento financiero de los últimos 6 meses', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentGold.withAlpha(25),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.accentGold.withAlpha(80)),
+                  color: AppTheme.primaryAccent.withAlpha(15),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text('Facturado USD', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.accentGold)),
+                child: const Text('USD Facturado', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryAccent)),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
           SizedBox(
             height: 220,
             child: monthsList.isEmpty
-                ? const Center(child: Text('Cargando historial de facturación...'))
+                ? const Center(child: Text('Cargando historial...'))
                 : BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
@@ -463,10 +418,10 @@ class AdminDashboardScreen extends ConsumerWidget {
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 44,
+                            reservedSize: 42,
                             getTitlesWidget: (val, meta) => Text(
                               '\$${val.toInt()}',
-                              style: const TextStyle(color: AppTheme.textMuted, fontSize: 10.5),
+                              style: const TextStyle(color: AppTheme.textMuted, fontSize: 10),
                             ),
                           ),
                         ),
@@ -493,7 +448,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                       gridData: FlGridData(
                         show: true,
                         drawVerticalLine: false,
-                        getDrawingHorizontalLine: (_) => FlLine(color: Colors.grey.shade100, strokeWidth: 1),
+                        getDrawingHorizontalLine: (_) => const FlLine(color: AppTheme.borderLight, strokeWidth: 1),
                       ),
                       barGroups: monthsList.asMap().entries.map((entry) {
                         final rev = (entry.value['revenueUsd'] as num?)?.toDouble() ?? 0.0;
@@ -502,13 +457,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                           barRods: [
                             BarChartRodData(
                               toY: rev,
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF0A2540), Color(0xFFC5A059)],
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                              ),
-                              width: 24,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                              color: AppTheme.primaryAccent,
+                              width: 22,
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
                             ),
                           ],
                         );
@@ -528,27 +479,26 @@ class AdminDashboardScreen extends ConsumerWidget {
     final maintenance = stats['maintenanceRooms'] as int? ?? 0;
 
     return Container(
-      padding: const EdgeInsets.all(26),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: AppTheme.luxuryCardShadow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderLight),
+        boxShadow: AppTheme.cleanCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Estado del Inventario', style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 2),
-          const Text('Control de llaves y ciclo de camareras', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
-          const SizedBox(height: 20),
-          _buildStatusRow('Disponibles para Huéspedes', available, AppTheme.successGreen, Icons.check_circle_outline),
-          const Divider(height: 22),
-          _buildStatusRow('Ocupadas (Huéspedes en Casa)', occupied, AppTheme.primaryBlue, Icons.hotel),
-          const Divider(height: 22),
-          _buildStatusRow('En Limpieza (Housekeeping)', cleaning, AppTheme.warningOrange, Icons.cleaning_services_outlined),
-          const Divider(height: 22),
-          _buildStatusRow('En Mantenimiento Preventivo', maintenance, Colors.grey.shade600, Icons.build_outlined),
+          Text('Estado de Habitaciones', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('Control de inventario y camareras', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+          const SizedBox(height: 18),
+          _buildStatusRow('Disponibles para reserva', available, AppTheme.accentEmerald, Icons.check_circle),
+          const Divider(height: 20),
+          _buildStatusRow('Ocupadas (Huéspedes en casa)', occupied, AppTheme.primaryNavy, Icons.hotel),
+          const Divider(height: 20),
+          _buildStatusRow('En Limpieza (Housekeeping)', cleaning, AppTheme.warningOrange, Icons.cleaning_services),
+          const Divider(height: 20),
+          _buildStatusRow('En Mantenimiento', maintenance, Colors.grey.shade600, Icons.build),
         ],
       ),
     );
@@ -559,15 +509,15 @@ class AdminDashboardScreen extends ConsumerWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: color.withAlpha(20), shape: BoxShape.circle),
-          child: Icon(icon, color: color, size: 18),
+          decoration: BoxDecoration(color: color.withAlpha(18), shape: BoxShape.circle),
+          child: Icon(icon, color: color, size: 16),
         ),
         const SizedBox(width: 12),
         Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(color: color.withAlpha(20), borderRadius: BorderRadius.circular(10)),
-          child: Text('$count', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: BoxDecoration(color: color.withAlpha(18), borderRadius: BorderRadius.circular(8)),
+          child: Text('$count', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13.5)),
         ),
       ],
     );
@@ -578,12 +528,12 @@ class AdminDashboardScreen extends ConsumerWidget {
     if (rooms.isEmpty) return const SizedBox();
 
     return Container(
-      padding: const EdgeInsets.all(26),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: AppTheme.luxuryCardShadow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderLight),
+        boxShadow: AppTheme.cleanCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,25 +544,24 @@ class AdminDashboardScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Matriz de Habitaciones en Vivo', style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 2),
-                  const Text('Estado en tiempo real de cada suite del resort', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                  Text('Matriz de Suites en Tiempo Real', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text('Estado de cada habitación de la posada', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
                 ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryNavy.withAlpha(15),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppTheme.surfaceSubtle,
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text('${rooms.length} Suites Totales', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy)),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           Wrap(
-            spacing: 14,
-            runSpacing: 14,
+            spacing: 12,
+            runSpacing: 12,
             children: rooms.map((r) {
               final number = r['roomNumber']?.toString() ?? '';
               final title = r['title']?.toString() ?? '';
@@ -622,7 +571,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               Color statusColor;
               String statusLabel;
               if (status == 'Occupied') {
-                statusColor = AppTheme.primaryBlue;
+                statusColor = AppTheme.primaryNavy;
                 statusLabel = 'Ocupada';
               } else if (status == 'NeedsCleaning') {
                 statusColor = AppTheme.warningOrange;
@@ -631,17 +580,17 @@ class AdminDashboardScreen extends ConsumerWidget {
                 statusColor = Colors.grey.shade600;
                 statusLabel = 'Mantenimiento';
               } else {
-                statusColor = AppTheme.successGreen;
+                statusColor = AppTheme.accentEmerald;
                 statusLabel = 'Disponible';
               }
 
               return Container(
-                width: 220,
-                padding: const EdgeInsets.all(16),
+                width: 210,
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: AppTheme.bgCanvas,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: statusColor.withAlpha(80), width: 1.2),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: statusColor.withAlpha(60), width: 1.2),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -652,12 +601,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            gradient: AppTheme.goldGradient,
-                            borderRadius: BorderRadius.circular(8),
+                            color: AppTheme.primaryNavy,
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             'Hab. $number',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF061325)),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
                           ),
                         ),
                         Container(
@@ -667,14 +616,14 @@ class AdminDashboardScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Text(
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
                       guest != null ? 'Huésped: $guest' : statusLabel,
                       style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.w600),

@@ -26,75 +26,75 @@ class StaffManagementScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppTheme.bgCanvas,
       appBar: AppBar(
-        title: Text('Directorio de Personal & Usuarios', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Directorio de Personal & Equipo',
+          style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(Icons.refresh),
             tooltip: 'Actualizar',
             onPressed: () => ref.invalidate(staffListProvider),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.person_add_rounded),
+        icon: const Icon(Icons.person_add),
         label: const Text('Nuevo Colaborador', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppTheme.primaryNavy,
         foregroundColor: Colors.white,
         onPressed: () => _showUserFormDialog(context, ref),
       ),
       body: staffAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.accentGold)),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryAccent)),
         error: (err, _) => Center(child: Text(err.toString())),
         data: (users) {
           if (users.isEmpty) {
             return const Center(child: Text('No hay colaboradores registrados.'));
           }
 
-          final crossCount = isDesktop ? 2 : 1;
+          final admins = users.where((u) => u['role'] == 'Admin').length;
+          final receptionists = users.where((u) => u['role'] == 'Receptionist').length;
+          final housekeeping = users.where((u) => u['role'] == 'Housekeeping').length;
+          final guests = users.where((u) => u['role'] == 'Guest').length;
+
+          final crossCount = isDesktop ? (size.width > 1300 ? 3 : 2) : 1;
 
           return SingleChildScrollView(
-            padding: EdgeInsets.all(isDesktop ? 28 : 16),
+            padding: EdgeInsets.all(isDesktop ? 26 : 16),
             child: Center(
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 1200),
+                constraints: const BoxConstraints(maxWidth: 1300),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header Banner
-                    Container(
-                      padding: const EdgeInsets.all(22),
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        gradient: AppTheme.navyHeroGradient,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: AppTheme.luxuryCardShadow,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              gradient: AppTheme.goldGradient,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(Icons.badge_rounded, color: Color(0xFF061325), size: 24),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Equipo del Resort & Huéspedes', style: GoogleFonts.playfairDisplay(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                                Text('Gestión de accesos, roles de recepción y camareras', style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 12)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // 1. Team KPI Summary Strip
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final cardWidth = isDesktop ? (constraints.maxWidth - 48) / 4 : (constraints.maxWidth - 16) / 2;
 
-                    // Grid of users
+                        return Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: [
+                            _buildKpiSummaryCard('TOTAL EQUIPO', '${users.length}', 'Colaboradores activos', Icons.groups, AppTheme.primaryNavy, cardWidth),
+                            _buildKpiSummaryCard('ADMINISTRACIÓN', '$admins', 'Gerencia general', Icons.admin_panel_settings, AppTheme.primaryAccent, cardWidth),
+                            _buildKpiSummaryCard('RECEPCIÓN', '$receptionists', 'Atención y reservas', Icons.room_service, AppTheme.accentEmerald, cardWidth),
+                            _buildKpiSummaryCard('HOUSEKEEPING', '$housekeeping', 'Limpieza y camareras', Icons.cleaning_services, AppTheme.warningOrange, cardWidth),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 26),
+
+                    Text(
+                      'Colaboradores & Usuarios Registrados',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // 2. Directory Grid
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -102,12 +102,12 @@ class StaffManagementScreen extends ConsumerWidget {
                         crossAxisCount: crossCount,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
-                        mainAxisExtent: 140,
+                        mainAxisExtent: 175,
                       ),
                       itemCount: users.length,
                       itemBuilder: (context, index) {
                         final u = users[index];
-                        return _buildUserCard(context, ref, u);
+                        return _buildStaffDirectoryCard(context, ref, u);
                       },
                     ),
                   ],
@@ -120,7 +120,44 @@ class StaffManagementScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildUserCard(BuildContext context, WidgetRef ref, Map<String, dynamic> u) {
+  Widget _buildKpiSummaryCard(String title, String count, String sub, IconData icon, Color color, double width) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderLight),
+        boxShadow: AppTheme.cleanCardShadow,
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withAlpha(20),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textMuted, letterSpacing: 0.3)),
+                const SizedBox(height: 2),
+                Text(count, style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+                Text(sub, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStaffDirectoryCard(BuildContext context, WidgetRef ref, Map<String, dynamic> u) {
     final id = u['id']?.toString() ?? '';
     final fullName = u['fullName']?.toString() ?? 'Usuario';
     final username = u['username']?.toString() ?? '';
@@ -130,86 +167,98 @@ class StaffManagementScreen extends ConsumerWidget {
 
     Color roleColor;
     String roleLabel;
+    IconData roleIcon;
     if (role == 'Admin') {
-      roleColor = AppTheme.accentGold;
+      roleColor = AppTheme.primaryNavy;
       roleLabel = 'Administrador General';
+      roleIcon = Icons.admin_panel_settings;
     } else if (role == 'Receptionist') {
-      roleColor = AppTheme.caribbeanTeal;
+      roleColor = AppTheme.accentEmerald;
       roleLabel = 'Recepción';
+      roleIcon = Icons.room_service;
     } else if (role == 'Housekeeping') {
       roleColor = AppTheme.warningOrange;
       roleLabel = 'Camarera / Limpieza';
+      roleIcon = Icons.cleaning_services;
     } else {
-      roleColor = AppTheme.infoBlue;
-      roleLabel = 'Huésped VIP';
+      roleColor = AppTheme.primaryAccent;
+      roleLabel = 'Huésped';
+      roleIcon = Icons.person;
     }
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: AppTheme.luxuryCardShadow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderLight),
+        boxShadow: AppTheme.cleanCardShadow,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient: role == 'Admin' ? AppTheme.goldGradient : null,
-              color: role != 'Admin' ? roleColor.withAlpha(20) : null,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              fullName.isNotEmpty ? fullName[0].toUpperCase() : 'U',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: role == 'Admin' ? const Color(0xFF061325) : roleColor,
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: roleColor.withAlpha(20),
+                radius: 20,
+                child: Icon(roleIcon, color: roleColor, size: 20),
               ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        fullName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
+                    Text(
+                      fullName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: roleColor.withAlpha(20),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: roleColor.withAlpha(80)),
-                      ),
-                      child: Text(
-                        roleLabel,
-                        style: TextStyle(color: roleColor, fontWeight: FontWeight.bold, fontSize: 10),
-                      ),
+                    Text(
+                      '@$username',
+                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 11.5),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text('@$username • $email', style: const TextStyle(color: AppTheme.textMuted, fontSize: 11.5)),
-                if (phone.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text('Tlf: $phone', style: const TextStyle(color: AppTheme.textMuted, fontSize: 11)),
-                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: roleColor.withAlpha(18),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  roleLabel,
+                  style: TextStyle(color: roleColor, fontWeight: FontWeight.bold, fontSize: 10),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 16),
+          Row(
+            children: [
+              const Icon(Icons.email, size: 14, color: AppTheme.textMuted),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  email,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.textBody),
+                ),
+              ),
+              if (phone.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                const Icon(Icons.phone, size: 14, color: AppTheme.textMuted),
+                const SizedBox(width: 4),
+                Text(
+                  phone,
+                  style: const TextStyle(fontSize: 11.5, color: AppTheme.textBody, fontWeight: FontWeight.w500),
+                ),
               ],
-            ),
+            ],
           ),
         ],
       ),
@@ -229,8 +278,11 @@ class StaffManagementScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-          title: Text('Nuevo Colaborador', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Text(
+            'Registrar Colaborador',
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 17),
+          ),
           content: SingleChildScrollView(
             child: Form(
               key: formKey,
@@ -245,7 +297,7 @@ class StaffManagementScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: userController,
-                    decoration: const InputDecoration(labelText: 'Nombre de Usuario (login)'),
+                    decoration: const InputDecoration(labelText: 'Nombre de Usuario'),
                     validator: (v) => v?.isEmpty == true ? 'Requerido' : null,
                   ),
                   const SizedBox(height: 12),
@@ -257,16 +309,16 @@ class StaffManagementScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: phoneController,
-                    decoration: const InputDecoration(labelText: 'Teléfono / WhatsApp'),
+                    decoration: const InputDecoration(labelText: 'Teléfono de Contacto'),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     value: role,
-                    decoration: const InputDecoration(labelText: 'Rol en la Posada'),
+                    decoration: const InputDecoration(labelText: 'Departamento / Rol'),
                     items: const [
-                      DropdownMenuItem(value: 'Receptionist', child: Text('Recepción & Reservas')),
-                      DropdownMenuItem(value: 'Housekeeping', child: Text('Limpieza (Housekeeping)')),
-                      DropdownMenuItem(value: 'Admin', child: Text('Administrador General')),
+                      DropdownMenuItem(value: 'Receptionist', child: Text('Recepción')),
+                      DropdownMenuItem(value: 'Housekeeping', child: Text('Limpieza (Camarera)')),
+                      DropdownMenuItem(value: 'Admin', child: Text('Administrador')),
                     ],
                     onChanged: (val) => setState(() => role = val!),
                   ),
