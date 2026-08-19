@@ -2,17 +2,15 @@ using System.Text.Json.Serialization;
 using Posada.Infrastructure;
 using Posada.Infrastructure.Data;
 
+// Disable FileSystemWatcher inotify reload completely for Docker/Linux environments
+Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "true");
+
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
     ContentRootPath = AppContext.BaseDirectory
 });
-
-// Disable inotify FileSystemWatcher to prevent Docker user limit exceptions on Linux
-builder.Configuration.Sources.Clear();
-builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false);
-builder.Configuration.AddEnvironmentVariables();
 
 // Add Controllers with String Enum Converter
 builder.Services.AddControllers()
