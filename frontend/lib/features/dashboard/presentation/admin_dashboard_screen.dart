@@ -108,7 +108,13 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildWelcomeHero(BuildContext context, String userName, Map<String, dynamic> stats) {
-    final today = DateFormat('EEEE, d MMMM yyyy', 'es_ES').format(DateTime.now());
+    String today;
+    try {
+      today = DateFormat('EEEE, d MMMM yyyy', 'es_ES').format(DateTime.now());
+    } catch (_) {
+      final now = DateTime.now();
+      today = '${now.day}/${now.month}/${now.year}';
+    }
     final occRate = (stats['occupancyRatePercentage'] as num?)?.toDouble() ?? 0.0;
     final occRooms = stats['occupiedRooms'] as int? ?? 0;
     // La tasa BCV viene de HotelSettings; si no viene en el dashboard, usamos 765.0 por defecto
