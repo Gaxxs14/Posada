@@ -18,6 +18,15 @@ public interface IAuthService
     Task<ApiResponse<bool>> ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
 }
 
+public interface IUserService
+{
+    Task<ApiResponse<List<UserListItemDto>>> GetAllUsersAsync(UserRole? role = null);
+    Task<ApiResponse<UserListItemDto>> CreateStaffUserAsync(CreateUserRequest request);
+    Task<ApiResponse<UserListItemDto>> UpdateUserAsync(Guid id, UpdateUserRequest request);
+    Task<ApiResponse<bool>> ToggleUserStatusAsync(Guid id);
+    Task<ApiResponse<bool>> DeleteUserAsync(Guid id);
+}
+
 public interface IRoomService
 {
     Task<ApiResponse<List<RoomDto>>> GetAllRoomsAsync(RoomStatus? status = null, RoomType? type = null);
@@ -46,6 +55,12 @@ public interface IBookingService
 public interface IDashboardService
 {
     Task<ApiResponse<DashboardStatsDto>> GetDashboardStatsAsync();
+}
+
+public interface IReportService
+{
+    Task<ApiResponse<FinancialReportDto>> GetFinancialReportAsync(DateTime? fromDate = null, DateTime? toDate = null);
+    Task<ApiResponse<OccupancyReportDto>> GetOccupancyReportAsync(DateTime? fromDate = null, DateTime? toDate = null);
 }
 
 public interface IHotelSettingService

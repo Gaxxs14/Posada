@@ -8,8 +8,11 @@ import '../../dashboard/presentation/admin_dashboard_screen.dart';
 import '../../experiences/presentation/experiences_screen.dart';
 import '../../housekeeping/presentation/housekeeping_screen.dart';
 import '../../reception/presentation/reception_screen.dart';
+import '../../reports/presentation/reports_screen.dart';
 import '../../rooms/presentation/room_catalog_screen.dart';
+import '../../rooms/presentation/room_management_screen.dart';
 import '../../settings/presentation/hotel_settings_screen.dart';
+import '../../staff/presentation/staff_management_screen.dart';
 
 class MainNavigationScreen extends ConsumerStatefulWidget {
   const MainNavigationScreen({super.key});
@@ -25,6 +28,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(authStateProvider).value;
     final isStaff = user?.isStaff ?? false;
+    final isAdmin = user?.role == 'Admin';
     final isDesktop = MediaQuery.of(context).size.width > 800;
 
     // Define navigation destinations based on role
@@ -46,8 +50,15 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
               title: 'Habitaciones',
               icon: Icons.hotel_outlined,
               selectedIcon: Icons.hotel,
-              screen: const RoomCatalogScreen(),
+              screen: isAdmin ? const RoomManagementScreen() : const RoomCatalogScreen(),
             ),
+            if (isAdmin)
+              NavigationDestinationItem(
+                title: 'Personal',
+                icon: Icons.people_outline,
+                selectedIcon: Icons.people,
+                screen: const StaffManagementScreen(),
+              ),
             NavigationDestinationItem(
               title: 'Limpieza',
               icon: Icons.cleaning_services_outlined,
@@ -55,17 +66,31 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
               screen: const HousekeepingScreen(),
             ),
             NavigationDestinationItem(
+              title: 'Tours',
+              icon: Icons.sailing_outlined,
+              selectedIcon: Icons.sailing,
+              screen: const ExperiencesScreen(),
+            ),
+            if (isAdmin)
+              NavigationDestinationItem(
+                title: 'Reportes',
+                icon: Icons.bar_chart_outlined,
+                selectedIcon: Icons.bar_chart,
+                screen: const ReportsScreen(),
+              ),
+            NavigationDestinationItem(
               title: 'Concierge IA',
               icon: Icons.auto_awesome_outlined,
               selectedIcon: Icons.auto_awesome,
               screen: const AiConciergeScreen(),
             ),
-            NavigationDestinationItem(
-              title: 'Configuración',
-              icon: Icons.settings_outlined,
-              selectedIcon: Icons.settings,
-              screen: const HotelSettingsScreen(),
-            ),
+            if (isAdmin)
+              NavigationDestinationItem(
+                title: 'Configuración',
+                icon: Icons.settings_outlined,
+                selectedIcon: Icons.settings,
+                screen: const HotelSettingsScreen(),
+              ),
           ]
         : [
             NavigationDestinationItem(

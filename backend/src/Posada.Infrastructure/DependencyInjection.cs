@@ -39,6 +39,8 @@ public static class DependencyInjection
         services.AddScoped<IExperienceService, ExperienceService>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IAiConciergeService, AiConciergeService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IReportService, ReportService>();
 
         // JWT Authentication
         var secretKey = configuration["Jwt:Key"] 

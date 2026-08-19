@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../auth/presentation/auth_controller.dart';
 
 final experiencesProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
   final apiClient = ref.watch(apiClientProvider);
@@ -21,6 +22,8 @@ class ExperiencesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final experiencesAsync = ref.watch(experiencesProvider);
+    final user = ref.watch(authStateProvider).value;
+    final isStaff = user?.isStaff ?? false;
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width > 900;
 
@@ -34,6 +37,15 @@ class ExperiencesScreen extends ConsumerWidget {
           ),
         ],
       ),
+      floatingActionButton: isStaff
+          ? FloatingActionButton.extended(
+              icon: const Icon(Icons.add_location_alt),
+              label: const Text('Nuevo Tour'),
+              backgroundColor: AppTheme.primaryBlue,
+              foregroundColor: Colors.white,
+              onPressed: () => _showCreateTourDialog(context, ref),
+            )
+          : null,
       body: experiencesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text(err.toString())),
@@ -56,6 +68,7 @@ class ExperiencesScreen extends ConsumerWidget {
                 itemCount: experiences.length,
                 itemBuilder: (context, index) {
                   final exp = experiences[index];
+                  final id = exp['id']?.toString() ?? '';
                   final title = exp['title']?.toString() ?? '';
                   final desc = exp['description']?.toString() ?? '';
                   final price = (exp['priceUsd'] as num?)?.toDouble() ?? 0.0;
@@ -89,6 +102,19 @@ class ExperiencesScreen extends ConsumerWidget {
                                 child: Text(category, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                               ),
                             ),
+                            if (isStaff)
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.white.withAlpha(200),
+                                  radius: 18,
+                                  child: IconButton(
+                                    icon: const Icon(Icons.delete, size: 18, color: AppTheme.errorRed),
+                                    onPressed: () => _deleteTour(context, ref, id),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                         Expanded(
@@ -156,6 +182,109 @@ class ExperiencesScreen extends ConsumerWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _deleteTour(BuildContext context, WidgetRef ref, String id) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('¿Eliminar tour?'),
+        content: const Text('Esta acción eliminará el tour turístico.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorRed),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final apiClient = ref.read(apiClientProvider);
+              await apiClient.dio.delete('/api/experiences/$id');
+              ref.invalidate(experiencesProvider);
+            },
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateTourDialog(BuildContext context, WidgetRef ref) {
+    final titleCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final priceCtrl = TextEditingController(text: '40');
+    final durationCtrl = TextEditingController(text: '4 horas');
+    final categoryCtrl = TextEditingController(text: 'Tour');
+    final imgCtrl = TextEditingController(text: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800');
+    bool includesTransport = true;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Registrar Nuevo Tour / Experiencia'),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Nombre del Tour')),
+                  const SizedBox(height: 12),
+                  TextField(controller: descCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'Descripción')),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: TextField(controller: priceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Precio USD', prefixText: '\$ '))),
+                      const SizedBox(width: 12),
+                      Expanded(child: TextField(controller: durationCtrl, decoration: const InputDecoration(labelText: 'Duración (ej. 5 horas)'))),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(controller: categoryCtrl, decoration: const InputDecoration(labelText: 'Categoría (ej. Tour, Gastronomía, Spa)')),
+                  const SizedBox(height: 12),
+                  TextField(controller: imgCtrl, decoration: const InputDecoration(labelText: 'URL de Imagen')),
+                  const SizedBox(height: 12),
+                  SwitchListTile(
+                    title: const Text('Incluye Transporte'),
+                    value: includesTransport,
+                    onChanged: (val) => setDialogState(() => includesTransport = val),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Cancelar')),
+            ElevatedButton(
+              onPressed: () async {
+                final t = titleCtrl.text.trim();
+                final d = descCtrl.text.trim();
+                final p = double.tryParse(priceCtrl.text) ?? 40.0;
+                final dur = durationCtrl.text.trim();
+                final cat = categoryCtrl.text.trim();
+                final img = imgCtrl.text.trim();
+
+                if (t.isEmpty) return;
+
+                final apiClient = ref.read(apiClientProvider);
+                await apiClient.dio.post('/api/experiences', data: {
+                  'title': t,
+                  'description': d,
+                  'priceUsd': p,
+                  'duration': dur,
+                  'category': cat,
+                  'imageUrl': img,
+                  'includesTransport': includesTransport,
+                });
+
+                if (context.mounted) Navigator.pop(dialogCtx);
+                ref.invalidate(experiencesProvider);
+              },
+              child: const Text('Crear Tour'),
+            ),
+          ],
+        ),
       ),
     );
   }
