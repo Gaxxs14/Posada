@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_formatter.dart';
-import '../../../core/widgets/status_badge.dart';
 import '../../bookings/data/booking_repository.dart';
 import '../../bookings/models/booking_model.dart';
 import '../../bookings/presentation/booking_controller.dart';
@@ -22,7 +22,7 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> with SingleTi
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -59,7 +59,7 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> with SingleTi
       ref.invalidate(roomsListProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Check-in realizado. Habitación marcada como Ocupada.'), backgroundColor: AppTheme.successGreen),
+          const SnackBar(content: Text('Check-in realizado. Huésped registrado en habitación.'), backgroundColor: AppTheme.successGreen),
         );
       }
     } catch (e) {
@@ -79,7 +79,7 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> with SingleTi
       ref.invalidate(roomsListProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Check-out realizado. Habitación enviada a Limpieza.'), backgroundColor: AppTheme.secondaryTeal),
+          const SnackBar(content: Text('Check-out completado. Habitación enviada a limpieza.'), backgroundColor: AppTheme.primaryNavy),
         );
       }
     } catch (e) {
@@ -91,226 +91,286 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> with SingleTi
     }
   }
 
-  void _showExtraChargeDialog(BookingModel booking) {
-    final descController = TextEditingController();
-    final amountController = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    final bookingsAsync = ref.watch(allBookingsProvider);
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width > 900;
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Agregar Consumo / Cargo (#${booking.roomNumber})'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+    return Scaffold(
+      backgroundColor: AppTheme.bgCanvas,
+      appBar: AppBar(
+        title: Text('Control de Recepción & Huéspedes', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Actualizar',
+            onPressed: () => ref.invalidate(allBookingsProvider),
+          ),
+          const SizedBox(width: 12),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppTheme.primaryNavy,
+          unselectedLabelColor: AppTheme.textMuted,
+          indicatorColor: AppTheme.accentGold,
+          indicatorWeight: 3,
+          labelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13),
+          tabs: const [
+            Tab(icon: Icon(Icons.pending_actions_rounded, size: 18), text: 'Por Aprobar'),
+            Tab(icon: Icon(Icons.hotel_rounded, size: 18), text: 'Huéspedes en Casa'),
+            Tab(icon: Icon(Icons.history_rounded, size: 18), text: 'Historial'),
+          ],
+        ),
+      ),
+      body: bookingsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.accentGold)),
+        error: (err, _) => Center(child: Text(err.toString())),
+        data: (bookings) {
+          final pending = bookings.where((b) => b.status.toLowerCase() == 'pending').toList();
+          final inHouse = bookings.where((b) => b.status.toLowerCase() == 'checkedin' || b.status.toLowerCase() == 'confirmed').toList();
+          final completed = bookings.where((b) => b.status.toLowerCase() == 'checkedout' || b.status.toLowerCase() == 'cancelled').toList();
+
+          return TabBarView(
+            controller: _tabController,
+            children: [
+              _buildBookingsList(pending, isPending: true, isDesktop: isDesktop),
+              _buildBookingsList(inHouse, isInHouse: true, isDesktop: isDesktop),
+              _buildBookingsList(completed, isHistory: true, isDesktop: isDesktop),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBookingsList(List<BookingModel> list, {bool isPending = false, bool isInHouse = false, bool isHistory = false, bool isDesktop = false}) {
+    if (list.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: descController,
-              decoration: const InputDecoration(labelText: 'Descripción', hintText: 'Ej: Bebidas, Desayuno, Lavandería'),
-            ),
+            Icon(Icons.inbox_outlined, size: 56, color: Colors.grey.shade300),
             const SizedBox(height: 12),
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Monto USD (\$)', prefixText: '\$ '),
+            Text(
+              isPending ? 'No hay reservaciones pendientes de aprobación' : (isInHouse ? 'No hay huéspedes con estadía activa hoy' : 'No hay historial registrado'),
+              style: const TextStyle(color: AppTheme.textMuted, fontSize: 14),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () async {
-              final amount = double.tryParse(amountController.text) ?? 0.0;
-              if (descController.text.isEmpty || amount <= 0) return;
-              Navigator.pop(context);
-              try {
-                final repo = ref.read(bookingRepositoryProvider);
-                await repo.addExtraCharge(booking.id, {
-                  'description': descController.text.trim(),
-                  'amountUsd': amount,
-                  'quantity': 1,
-                });
-                ref.invalidate(allBookingsProvider);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Cargo agregado a la cuenta.'), backgroundColor: AppTheme.successGreen),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.errorRed),
-                  );
-                }
-              }
-            },
-            child: const Text('Agregar Cargo'),
+      );
+    }
+
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        padding: EdgeInsets.all(isDesktop ? 24 : 14),
+        child: ListView.separated(
+          itemCount: list.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 14),
+          itemBuilder: (context, index) {
+            final b = list[index];
+            return _buildBookingCard(b, isPending: isPending, isInHouse: isInHouse);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBookingCard(BookingModel b, {bool isPending = false, bool isInHouse = false}) {
+    final dateFormat = DateFormat('d MMM yyyy', 'es_ES');
+    final checkInStr = dateFormat.format(b.checkInDate);
+    final checkOutStr = dateFormat.format(b.checkOutDate);
+    final totalVes = b.totalAmountUsd * 765.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: AppTheme.luxuryCardShadow,
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top Row: Code, Room number, and Status Chip
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.goldGradient,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  b.bookingCode.isNotEmpty ? b.bookingCode : 'RESERVA',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF061325)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Hab. ${b.roomNumber} • ${b.roomTitle}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const Spacer(),
+              _buildStatusBadge(b.status),
+            ],
           ),
+          const SizedBox(height: 14),
+
+          // Guest Details & Dates
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.person_outline, size: 16, color: AppTheme.textMuted),
+                        const SizedBox(width: 6),
+                        Text(
+                          b.guestName,
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today_outlined, size: 14, color: AppTheme.textMuted),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$checkInStr — $checkOutStr (${b.totalNights} noches • ${b.guestsCount} personas)',
+                          style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Price block
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    CurrencyFormatter.formatUsd(b.totalAmountUsd),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppTheme.textDark),
+                  ),
+                  Text(
+                    '${CurrencyFormatter.formatVes(totalVes)} Bs.',
+                    style: const TextStyle(color: AppTheme.caribbeanTeal, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          if (b.specialRequests != null && b.specialRequests!.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.bgCanvas,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 14, color: AppTheme.accentBronze),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Petición Especial: ${b.specialRequests}',
+                      style: const TextStyle(fontSize: 11.5, color: AppTheme.textBody),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // Action Buttons
+          if (isPending || isInHouse) ...[
+            const Divider(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (isPending) ...[
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.check_circle_rounded, size: 16),
+                    label: const Text('Aprobar Reservación'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.successGreen,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => _approveBooking(b.id),
+                  ),
+                ] else if (b.status.toLowerCase() == 'confirmed') ...[
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.key_rounded, size: 16),
+                    label: const Text('Registrar Check-In'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryNavy,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => _checkIn(b.id),
+                  ),
+                ] else if (b.status.toLowerCase() == 'checkedin') ...[
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.logout_rounded, size: 16),
+                    label: const Text('Procesar Check-Out'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.warningOrange,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => _checkOut(b.id),
+                  ),
+                ],
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final allBookingsAsync = ref.watch(allBookingsProvider);
-    final roomsAsync = ref.watch(roomsListProvider);
-    final dateFormat = DateFormat('dd/MM/yyyy');
+  Widget _buildStatusBadge(String status) {
+    Color bg;
+    String label;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recepción & Front Desk'),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.primaryBlue,
-          indicatorColor: AppTheme.primaryBlue,
-          tabs: const [
-            Tab(icon: Icon(Icons.bookmark_border), text: 'Gestión de Reservaciones'),
-            Tab(icon: Icon(Icons.grid_view), text: 'Estado de Habitaciones'),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref.invalidate(allBookingsProvider);
-              ref.invalidate(roomsListProvider);
-            },
-          ),
-        ],
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        bg = AppTheme.successGreen;
+        label = 'Confirmada';
+        break;
+      case 'checkedin':
+        bg = AppTheme.primaryNavy;
+        label = 'En Casa';
+        break;
+      case 'pending':
+        bg = AppTheme.warningOrange;
+        label = 'Por Aprobar';
+        break;
+      case 'checkedout':
+        bg = Colors.grey.shade600;
+        label = 'Completada';
+        break;
+      default:
+        bg = Colors.grey.shade500;
+        label = status;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg.withAlpha(20),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: bg.withAlpha(100)),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Tab 1: Bookings Management
-          allBookingsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text(err.toString())),
-            data: (bookings) {
-              if (bookings.isEmpty) {
-                return const Center(child: Text('No hay reservaciones registradas'));
-              }
-
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: bookings.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final b = bookings[index];
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${b.bookingCode} - ${b.guestName}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              StatusBadge(status: b.status),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text('Habitación: #${b.roomNumber} (${b.roomTitle})', style: const TextStyle(color: AppTheme.textMuted)),
-                          Text(
-                            'Fechas: ${dateFormat.format(b.checkInDate)} al ${dateFormat.format(b.checkOutDate)} (${b.totalNights} noches)',
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          Text(
-                            'Total: ${CurrencyFormatter.formatDual(b.totalAmountUsd, b.exchangeRateUsed)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
-                          ),
-                          const Divider(height: 16),
-
-                          // Action Buttons
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              if (b.isPending)
-                                ElevatedButton.icon(
-                                  onPressed: () => _approveBooking(b.id),
-                                  icon: const Icon(Icons.check, size: 16),
-                                  label: const Text('Aprobar Reserva'),
-                                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.successGreen),
-                                ),
-                              if (b.isConfirmed)
-                                ElevatedButton.icon(
-                                  onPressed: () => _checkIn(b.id),
-                                  icon: const Icon(Icons.login, size: 16),
-                                  label: const Text('Check-In (Huésped Llegó)'),
-                                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
-                                ),
-                              if (b.isCheckedIn) ...[
-                                ElevatedButton.icon(
-                                  onPressed: () => _checkOut(b.id),
-                                  icon: const Icon(Icons.logout, size: 16),
-                                  label: const Text('Check-Out (Salida)'),
-                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: () => _showExtraChargeDialog(b),
-                                  icon: const Icon(Icons.add_shopping_cart, size: 16),
-                                  label: const Text('Cargar Consumo'),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-
-          // Tab 2: Live Room Status Grid
-          roomsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text(err.toString())),
-            data: (rooms) {
-              return GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 260,
-                  childAspectRatio: 1.1,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: rooms.length,
-                itemBuilder: (context, index) {
-                  final r = rooms[index];
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '#${r.roomNumber}',
-                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
-                              ),
-                              StatusBadge(status: r.status),
-                            ],
-                          ),
-                          Text(r.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                          Text('Capacidad: ${r.capacity} pers. | Piso ${r.floor}', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
-                          Text(CurrencyFormatter.formatUsd(r.pricePerNightUsd), style: const TextStyle(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ],
+      child: Text(
+        label,
+        style: TextStyle(color: bg, fontWeight: FontWeight.bold, fontSize: 11),
       ),
     );
   }

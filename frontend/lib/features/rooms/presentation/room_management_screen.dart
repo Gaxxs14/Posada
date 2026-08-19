@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/api/api_client.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../data/room_repository.dart';
 import '../models/room_model.dart';
 import 'room_controller.dart';
 
@@ -12,129 +14,274 @@ class RoomManagementScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomsAsync = ref.watch(roomsListProvider);
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width > 900;
 
     return Scaffold(
+      backgroundColor: AppTheme.bgCanvas,
       appBar: AppBar(
-        title: const Text('Gestión de Habitaciones'),
+        title: Text('Inventario de Habitaciones', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.refresh(roomsListProvider),
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Recargar Habitaciones',
+            onPressed: () => ref.invalidate(roomsListProvider),
           ),
+          const SizedBox(width: 12),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.add),
-        label: const Text('Nueva Habitación'),
-        backgroundColor: AppTheme.primaryBlue,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Nueva Habitación', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppTheme.primaryNavy,
         foregroundColor: Colors.white,
         onPressed: () => _showRoomFormDialog(context, ref),
       ),
       body: roomsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.accentGold)),
         error: (err, _) => Center(child: Text(err.toString())),
         data: (rooms) {
           if (rooms.isEmpty) {
-            return const Center(child: Text('No hay habitaciones registradas. Crea la primera con el botón de abajo.'));
+            return const Center(child: Text('No hay habitaciones registradas.'));
           }
 
-          return Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 1200),
-              padding: const EdgeInsets.all(16),
-              child: ListView.separated(
-                itemCount: rooms.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final room = rooms[index];
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+          final crossCount = isDesktop ? (size.width > 1400 ? 3 : 2) : 1;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(isDesktop ? 28 : 16),
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 1400),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header summary banner
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.navyHeroGradient,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: AppTheme.luxuryCardShadow,
+                      ),
                       child: Row(
                         children: [
                           Container(
-                            width: 60,
-                            height: 60,
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryBlue.withAlpha(20),
-                              borderRadius: BorderRadius.circular(12),
+                              gradient: AppTheme.goldGradient,
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              room.roomNumber,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryBlue),
-                            ),
+                            child: const Icon(Icons.hotel, color: Color(0xFF061325), size: 24),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    Text(room.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                    const SizedBox(width: 10),
-                                    _buildStatusBadge(room.status),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Piso ${room.floor} • Capacidad: ${room.capacity} personas • ${room.type}',
-                                  style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-                                ),
-                                const SizedBox(height: 6),
-                                Wrap(
-                                  spacing: 6,
-                                  runSpacing: 4,
-                                  children: room.amenities.take(4).map((a) {
-                                    return Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade100,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(a, style: const TextStyle(fontSize: 10)),
-                                    );
-                                  }).toList(),
-                                ),
+                                Text('Catálogo de Suites & Cabañas', style: GoogleFonts.playfairDisplay(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                Text('Administra tarifas en USD, estados de ocupación y amenidades', style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 12)),
                               ],
                             ),
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                CurrencyFormatter.formatUsd(room.pricePerNightUsd),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryBlue),
-                              ),
-                              const Text('por noche', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined, size: 20, color: AppTheme.primaryBlue),
-                                    tooltip: 'Editar',
-                                    onPressed: () => _showRoomFormDialog(context, ref, room: room),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline, size: 20, color: AppTheme.errorRed),
-                                    tooltip: 'Eliminar',
-                                    onPressed: () => _deleteRoom(context, ref, room.id),
-                                  ),
-                                ],
-                              ),
-                            ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppTheme.accentGold.withAlpha(100)),
+                            ),
+                            child: Text(
+                              '${rooms.length} Suites Totales',
+                              style: const TextStyle(color: AppTheme.accentGoldLight, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                },
+
+                    // Grid of luxury room cards
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossCount,
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 20,
+                        mainAxisExtent: 420,
+                      ),
+                      itemCount: rooms.length,
+                      itemBuilder: (context, index) {
+                        final room = rooms[index];
+                        return _buildLuxuryRoomCard(context, ref, room);
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLuxuryRoomCard(BuildContext context, WidgetRef ref, RoomModel room) {
+    final imageUrl = room.imageUrls.isNotEmpty
+        ? room.imageUrls[0]
+        : 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800';
+    final priceVes = room.pricePerNightUsd * 765.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: AppTheme.luxuryCardShadow,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Room Image with Overlay Badges
+          Stack(
+            children: [
+              CachedNetworkImage(
+                imageUrl: imageUrl,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(color: Colors.grey.shade100),
+                errorWidget: (context, url, error) => Container(
+                  height: 180,
+                  color: AppTheme.primaryNavy,
+                  child: const Center(child: Icon(Icons.hotel, size: 48, color: Colors.white24)),
+                ),
+              ),
+              // Top Badges (Room Number + Status)
+              Positioned(
+                top: 12,
+                left: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.goldGradient,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: AppTheme.goldGlowShadow,
+                  ),
+                  child: Text(
+                    'Hab. ${room.roomNumber}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF061325)),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 12,
+                right: 12,
+                child: _buildStatusBadge(room.status),
+              ),
+              // Bottom Price Badge
+              Positioned(
+                bottom: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(180),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        CurrencyFormatter.formatUsd(room.pricePerNightUsd),
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      Text(
+                        '${CurrencyFormatter.formatVes(priceVes)} Bs./noche',
+                        style: TextStyle(color: AppTheme.accentGoldLight.withAlpha(220), fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // 2. Room Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  room.title,
+                  style: GoogleFonts.playfairDisplay(fontSize: 16, fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Piso ${room.floor} • Capacidad: ${room.capacity} personas • ${room.type}',
+                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                ),
+                const SizedBox(height: 10),
+
+                // Amenities Wrap
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: room.amenities.take(3).map((a) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.bgCanvas,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Text(a, style: const TextStyle(fontSize: 10.5, color: AppTheme.textBody, fontWeight: FontWeight.w500)),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+
+                // Quick Status Changer Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.cleaning_services, size: 14),
+                        label: const Text('Limpieza', style: TextStyle(fontSize: 11)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.warningOrange,
+                          side: const BorderSide(color: AppTheme.warningOrange),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () => _updateRoomStatus(context, ref, room.id, 'NeedsCleaning'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.check_circle_outline, size: 14),
+                        label: const Text('Disponible', style: TextStyle(fontSize: 11)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.successGreen,
+                          side: const BorderSide(color: AppTheme.successGreen),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () => _updateRoomStatus(context, ref, room.id, 'Available'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -144,239 +291,168 @@ class RoomManagementScreen extends ConsumerWidget {
     Color fg;
     String label;
 
-    switch (status) {
-      case 'Available':
-        bg = AppTheme.successGreen.withAlpha(30);
-        fg = AppTheme.successGreen;
+    switch (status.toLowerCase()) {
+      case 'available':
+        bg = AppTheme.successGreen;
+        fg = Colors.white;
         label = 'Disponible';
         break;
-      case 'Occupied':
-        bg = AppTheme.errorRed.withAlpha(30);
-        fg = AppTheme.errorRed;
+      case 'occupied':
+        bg = AppTheme.primaryNavy;
+        fg = Colors.white;
         label = 'Ocupada';
         break;
-      case 'Cleaning':
-        bg = AppTheme.accentGold.withAlpha(30);
-        fg = Colors.orange.shade800;
-        label = 'Limpieza';
+      case 'needscleaning':
+        bg = AppTheme.warningOrange;
+        fg = Colors.white;
+        label = 'En Limpieza';
         break;
-      case 'Maintenance':
-      default:
-        bg = Colors.grey.shade200;
-        fg = Colors.grey.shade700;
+      case 'undermaintenance':
+        bg = AppTheme.errorRed;
+        fg = Colors.white;
         label = 'Mantenimiento';
         break;
+      default:
+        bg = Colors.grey.shade600;
+        fg = Colors.white;
+        label = status;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-      child: Text(label, style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  void _deleteRoom(BuildContext context, WidgetRef ref, String roomId) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('¿Eliminar habitación?'),
-        content: const Text('Esta acción eliminará la habitación del catálogo.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorRed),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final apiClient = ref.read(apiClientProvider);
-              await apiClient.dio.delete('/api/rooms/$roomId');
-              ref.invalidate(roomsListProvider);
-            },
-            child: const Text('Eliminar'),
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: fg, fontWeight: FontWeight.bold, fontSize: 11),
       ),
     );
   }
 
-  void _showRoomFormDialog(BuildContext context, WidgetRef ref, {RoomModel? room}) {
-    final isEditing = room != null;
-    final numberCtrl = TextEditingController(text: room?.roomNumber ?? '');
-    final titleCtrl = TextEditingController(text: room?.title ?? '');
-    final descCtrl = TextEditingController(text: room?.description ?? '');
-    final priceCtrl = TextEditingController(text: room?.pricePerNightUsd.toString() ?? '50');
-    final capacityCtrl = TextEditingController(text: room?.capacity.toString() ?? '2');
-    final floorCtrl = TextEditingController(text: room?.floor.toString() ?? '1');
-    final imageCtrl = TextEditingController(
-      text: room?.imageUrls.isNotEmpty == true
-          ? room!.imageUrls.first
-          : 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800',
-    );
+  void _updateRoomStatus(BuildContext context, WidgetRef ref, String roomId, String status) async {
+    try {
+      final repo = ref.read(roomRepositoryProvider);
+      await repo.updateRoomStatus(roomId, status);
+      ref.invalidate(roomsListProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Estado actualizado a $status'), backgroundColor: AppTheme.successGreen),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.errorRed),
+        );
+      }
+    }
+  }
 
-    String selectedType = room?.type ?? 'Double';
-    final List<String> availableAmenities = [
-      'WiFi Alta Velocidad',
-      'Aire Acondicionado',
-      'Smart TV',
-      'Baño Privado',
-      'Agua Caliente',
-      'Vista al Mar',
-      'Jacuzzi Privado',
-      'Cocina Equipada',
-      'Minibar Incluido',
-      'Desayuno Incluido',
-      'Balcón',
-      'Estacionamiento Privado',
-    ];
-
-    final Set<String> selectedAmenities = Set.from(room?.amenities ?? ['WiFi Alta Velocidad', 'Aire Acondicionado', 'Baño Privado']);
+  void _showRoomFormDialog(BuildContext context, WidgetRef ref) {
+    final formKey = GlobalKey<FormState>();
+    final numController = TextEditingController();
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
+    final priceController = TextEditingController();
+    int capacity = 2;
+    int floor = 1;
+    String type = 'Double';
 
     showDialog(
       context: context,
-      builder: (dialogCtx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(isEditing ? 'Editar Habitación' : 'Registrar Nueva Habitación'),
-          content: SizedBox(
-            width: 600,
-            child: SingleChildScrollView(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          title: Text('Nueva Habitación', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: numberCtrl,
-                          decoration: const InputDecoration(labelText: 'Número / Código (ej. 101, 204)'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: selectedType,
-                          decoration: const InputDecoration(labelText: 'Tipo de Habitación'),
-                          items: const [
-                            DropdownMenuItem(value: 'Single', child: Text('Individual')),
-                            DropdownMenuItem(value: 'Double', child: Text('Matrimonial / Doble')),
-                            DropdownMenuItem(value: 'Triple', child: Text('Triple')),
-                            DropdownMenuItem(value: 'Suite', child: Text('Suite Deluxe')),
-                            DropdownMenuItem(value: 'Family', child: Text('Familiar')),
-                          ],
-                          onChanged: (val) => setDialogState(() => selectedType = val!),
-                        ),
-                      ),
-                    ],
+                  TextFormField(
+                    controller: numController,
+                    decoration: const InputDecoration(labelText: 'Número de Habitación (ej. 301)'),
+                    validator: (v) => v?.isEmpty == true ? 'Requerido' : null,
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: titleCtrl,
-                    decoration: const InputDecoration(labelText: 'Título Descriptivo (ej. Suite Vista al Mar)'),
+                  TextFormField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: 'Título Descriptivo'),
+                    validator: (v) => v?.isEmpty == true ? 'Requerido' : null,
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: descCtrl,
+                  TextFormField(
+                    controller: descController,
+                    decoration: const InputDecoration(labelText: 'Descripción'),
                     maxLines: 2,
-                    decoration: const InputDecoration(labelText: 'Descripción Detallada'),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: priceCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Precio USD / Noche', prefixText: '\$ '),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: capacityCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Capacidad Máx (Personas)'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: floorCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Piso'),
-                        ),
-                      ),
+                  TextFormField(
+                    controller: priceController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Tarifa USD por noche (\$)', prefixText: '\$ '),
+                    validator: (v) => v?.isEmpty == true ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: type,
+                    decoration: const InputDecoration(labelText: 'Tipo de Habitación'),
+                    items: const [
+                      DropdownMenuItem(value: 'Single', child: Text('Individual (Single)')),
+                      DropdownMenuItem(value: 'Double', child: Text('Matrimonial / Doble (Double)')),
+                      DropdownMenuItem(value: 'Triple', child: Text('Triple (Triple)')),
+                      DropdownMenuItem(value: 'Suite', child: Text('Suite de Lujo (Suite)')),
+                      DropdownMenuItem(value: 'Family', child: Text('Cabaña Familiar (Family)')),
                     ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: imageCtrl,
-                    decoration: const InputDecoration(labelText: 'URL de Imagen Principal (Unsplash / Cloud)'),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Amenidades y Servicios Incluidos:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: availableAmenities.map((amenity) {
-                      final isSelected = selectedAmenities.contains(amenity);
-                      return FilterChip(
-                        label: Text(amenity, style: TextStyle(fontSize: 11, color: isSelected ? Colors.white : AppTheme.textDark)),
-                        selected: isSelected,
-                        selectedColor: AppTheme.primaryBlue,
-                        checkmarkColor: Colors.white,
-                        onSelected: (checked) {
-                          setDialogState(() {
-                            if (checked) {
-                              selectedAmenities.add(amenity);
-                            } else {
-                              selectedAmenities.remove(amenity);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
+                    onChanged: (val) => setState(() => type = val!),
                   ),
                 ],
               ),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
               onPressed: () async {
-                final num = numberCtrl.text.trim();
-                final title = titleCtrl.text.trim();
-                final desc = descCtrl.text.trim();
-                final price = double.tryParse(priceCtrl.text) ?? 50.0;
-                final capacity = int.tryParse(capacityCtrl.text) ?? 2;
-                final floor = int.tryParse(floorCtrl.text) ?? 1;
-                final img = imageCtrl.text.trim();
-
-                if (num.isEmpty || title.isEmpty) return;
-
-                final data = {
-                  'roomNumber': num,
-                  'title': title,
-                  'description': desc,
-                  'type': selectedType,
-                  'pricePerNightUsd': price,
-                  'capacity': capacity,
-                  'floor': floor,
-                  'amenities': selectedAmenities.toList(),
-                  'imageUrls': [img],
-                };
-
-                final apiClient = ref.read(apiClientProvider);
-                if (isEditing) {
-                  await apiClient.dio.put('/api/rooms/${room.id}', data: data);
-                } else {
-                  await apiClient.dio.post('/api/rooms', data: data);
+                if (formKey.currentState!.validate()) {
+                  try {
+                    final repo = ref.read(roomRepositoryProvider);
+                    await repo.createRoom({
+                      'roomNumber': numController.text.trim(),
+                      'title': titleController.text.trim(),
+                      'description': descController.text.trim(),
+                      'pricePerNightUsd': double.parse(priceController.text.trim()),
+                      'type': type,
+                      'capacity': capacity,
+                      'floor': floor,
+                      'amenities': ['WiFi Alta Velocidad', 'Aire Acondicionado', 'Smart TV', 'Baño Privado'],
+                      'imageUrls': ['https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800'],
+                    });
+                    ref.invalidate(roomsListProvider);
+                    if (ctx.mounted) Navigator.pop(ctx);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Habitación creada exitosamente'), backgroundColor: AppTheme.successGreen),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.errorRed),
+                      );
+                    }
+                  }
                 }
-
-                if (context.mounted) Navigator.pop(dialogCtx);
-                ref.invalidate(roomsListProvider);
               },
-              child: Text(isEditing ? 'Guardar Cambios' : 'Registrar Habitación'),
+              child: const Text('Crear Habitación'),
             ),
           ],
         ),

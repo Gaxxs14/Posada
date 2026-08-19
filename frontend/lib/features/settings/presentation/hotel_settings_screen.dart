@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_endpoints.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/currency_formatter.dart';
 
 final hotelSettingsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final apiClient = ref.watch(apiClientProvider);
@@ -64,142 +66,157 @@ class _HotelSettingsScreenState extends ConsumerState<HotelSettingsScreen> {
   }
 
   @override
-  void dispose() {
-    _rateController.dispose();
-    _nameController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final settingsAsync = ref.watch(hotelSettingsProvider);
 
     return Scaffold(
+      backgroundColor: AppTheme.bgCanvas,
       appBar: AppBar(
-        title: const Text('Configuración del Hotel'),
+        title: Text('Configuración General del Resort', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Actualizar',
             onPressed: () => ref.invalidate(hotelSettingsProvider),
           ),
+          const SizedBox(width: 12),
         ],
       ),
       body: settingsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.accentGold)),
         error: (err, _) => Center(child: Text(err.toString())),
         data: (settings) {
-          final currentRate = (settings['usdExchangeRateBcv'] as num?)?.toDouble() ?? 765.0;
-          final hotelName = settings['hotelName']?.toString() ?? '';
-          final phone = settings['phone']?.toString() ?? '';
-          final address = settings['address']?.toString() ?? '';
+          final currentBcv = (settings['usdExchangeRateBcv'] as num?)?.toDouble() ?? 765.0;
+          final hotelName = settings['hotelName']?.toString() ?? 'Posada Turística Sol y Mar';
+          final phone = settings['phone']?.toString() ?? '+58 424-8170076';
+          final address = settings['address']?.toString() ?? 'Sector Playa Grande, Venezuela';
+          final email = settings['email']?.toString() ?? 'contacto@posadasolmar.com';
 
           if (_rateController.text.isEmpty) {
-            _rateController.text = currentRate.toStringAsFixed(2);
-            _nameController.text = hotelName;
-            _phoneController.text = phone;
-            _addressController.text = address;
+            _rateController.text = currentBcv.toStringAsFixed(2);
           }
 
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(28),
+            child: Center(
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 600),
+                constraints: const BoxConstraints(maxWidth: 900),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Exchange Rate Card
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.successGreen.withAlpha(25),
-                                    shape: BoxShape.circle,
+                    // 1. Official BCV Rate Card (Golden Hero)
+                    Container(
+                      padding: const EdgeInsets.all(26),
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.navyHeroGradient,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: AppTheme.luxuryCardShadow,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  gradient: AppTheme.goldGradient,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: AppTheme.goldGlowShadow,
+                                ),
+                                child: const Icon(Icons.currency_exchange_rounded, color: Color(0xFF061325), size: 22),
+                              ),
+                              const SizedBox(width: 14),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Tasa Oficial de Cambio (BCV)',
+                                    style: GoogleFonts.playfairDisplay(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                                   ),
-                                  child: const Icon(Icons.currency_exchange, color: AppTheme.successGreen),
-                                ),
-                                const SizedBox(width: 12),
-                                const Text(
-                                  'Tasa de Cambio Oficial (BCV)',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Esta tasa se utiliza para calcular automáticamente todas las cotizaciones y pagos en Bolívares (Bs. VES).',
-                              style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
+                                  Text(
+                                    'Afecta automáticamente cotizaciones, reportes y precios en Bolívares (Bs.)',
+                                    style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 22),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
                                   child: TextField(
                                     controller: _rateController,
-                                    keyboardType: TextInputType.number,
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                                     decoration: const InputDecoration(
-                                      labelText: 'Tasa Bs. / 1 USD',
-                                      prefixText: 'Bs. ',
+                                      labelText: 'Tasa BCV (Bs. por 1 USD)',
+                                      suffixText: 'Bs.',
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                ElevatedButton(
-                                  onPressed: _isSaving ? null : _updateRate,
-                                  child: _isSaving
-                                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                                      : const Text('Actualizar Tasa'),
+                              ),
+                              const SizedBox(width: 14),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.accentGold,
+                                  foregroundColor: const Color(0xFF061325),
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
+                                onPressed: _isSaving ? null : _updateRate,
+                                child: _isSaving
+                                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF061325)))
+                                    : const Text('Actualizar Tasa', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'Valor actual activo en sistema: ${CurrencyFormatter.formatVes(currentBcv)} Bs. por cada \$1 USD',
+                            style: const TextStyle(color: AppTheme.accentGoldLight, fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 28),
 
-                    // Hotel Info Card
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Información General',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 16),
-                            TextField(
-                              controller: _nameController,
-                              decoration: const InputDecoration(labelText: 'Nombre de la Posada'),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: _phoneController,
-                              decoration: const InputDecoration(labelText: 'Teléfono / WhatsApp de Atención'),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: _addressController,
-                              decoration: const InputDecoration(labelText: 'Dirección o Ubicación'),
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Horarios de Atención:\n• Check-In: 14:00 hrs | Check-Out: 11:00 hrs',
-                              style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
-                            ),
-                          ],
-                        ),
+                    // 2. Hotel Identity Card
+                    Container(
+                      padding: const EdgeInsets.all(26),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.grey.shade200),
+                        boxShadow: AppTheme.luxuryCardShadow,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Información de la Posada', style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          const Text('Datos fiscales y de contacto mostrados en cotizaciones y comprobantes', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                          const SizedBox(height: 20),
+
+                          _buildInfoTile('Nombre del Establecimiento', hotelName, Icons.hotel),
+                          const Divider(height: 20),
+                          _buildInfoTile('Dirección Física', address, Icons.location_on_outlined),
+                          const Divider(height: 20),
+                          _buildInfoTile('Teléfono de Contacto / WhatsApp', phone, Icons.phone_outlined),
+                          const Divider(height: 20),
+                          _buildInfoTile('Correo Electrónico', email, Icons.email_outlined),
+                          const Divider(height: 20),
+                          _buildInfoTile('Horarios de Atención', 'Check-In: 15:00 • Check-Out: 12:00', Icons.access_time_outlined),
+                        ],
                       ),
                     ),
                   ],
@@ -209,6 +226,32 @@ class _HotelSettingsScreenState extends ConsumerState<HotelSettingsScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildInfoTile(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppTheme.bgCanvas,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, size: 18, color: AppTheme.primaryNavy),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
