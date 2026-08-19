@@ -104966,7 +104966,7 @@ A.aPZ.prototype={
 $1(a){return A.b7X(a.cz($.aWs(),t.As))},
 $S:635}
 A.pc.prototype={
-adX(a){var s,r="application/json",q=A.b87("https://posada-0nkr.onrender.com",B.qd,A.aG(["Content-Type",r,"Accept",r],t.N,t.z),B.qd),p=new A.TO(A.b([B.Gy],t.i6))
+adX(a){var s,r="application/json",q=A.b87("",B.qd,A.aG(["Content-Type",r,"Accept",r],t.N,t.z),B.qd),p=new A.TO(A.b([B.Gy],t.i6))
 p.M(p,B.Tw)
 s=new A.afd($,p,$,new A.ajj(51200),!1)
 s.a2U$=q
@@ -105415,7 +105415,7 @@ $S:0}
 A.aI4.prototype={
 $0(){var s=this.a
 s.as=!0
-s.at="Probando conexi\xf3n con https://posada-0nkr.onrender.com..."},
+s.at="Probando conexi\xf3n con ..."},
 $S:0}
 A.aI5.prototype={
 $0(){var s,r,q=this.a

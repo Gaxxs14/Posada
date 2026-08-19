@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json.Serialization;
 using Posada.Infrastructure;
 using Posada.Infrastructure.Data;
@@ -5,6 +6,9 @@ using Posada.Infrastructure.Data;
 // Disable FileSystemWatcher inotify reload completely for Docker/Linux environments
 Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
 Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "true");
+
+// Clear default JWT claim type mapping so role claims work correctly
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -23,7 +27,7 @@ builder.Services.AddControllers()
 // Infrastructure & Services (EF Core, JWT, Repositories)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Robust CORS for Flutter Web (Handles preflight OPTIONS and authorization headers)
+// CORS - allow all origins (needed for mobile app and different clients)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -35,7 +39,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -59,24 +62,30 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Swagger at root URL
+// Serve Flutter Web from wwwroot (eliminates CORS completely for web browsers)
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+// Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Posada API v1");
-    c.RoutePrefix = string.Empty;
+    c.RoutePrefix = "swagger";
 });
 
-// Middleware pipeline order
+// Middleware pipeline
 app.UseRouting();
 app.UseCors("AllowAll");
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Healthcheck endpoint
+// Healthcheck
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow, system = "Posada API v1.0" }));
+
+// SPA fallback - for Flutter web HTML5 routing
+app.MapFallbackToFile("index.html");
 
 app.Run();
