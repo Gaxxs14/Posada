@@ -328,7 +328,14 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildRevenueChartCard(Map<String, dynamic> stats) {
-    final List monthsList = stats['revenueByMonth'] ?? [];
+    final List monthsList = stats['revenueLast6Months'] ?? stats['revenueByMonth'] ?? [];
+
+    double maxRevenue = 0.0;
+    for (final m in monthsList) {
+      final val = (m['revenueUsd'] as num?)?.toDouble() ?? 0.0;
+      if (val > maxRevenue) maxRevenue = val;
+    }
+    final chartMaxY = maxRevenue > 0 ? maxRevenue * 1.3 : 100.0;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -375,7 +382,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                 : BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
-                      maxY: monthsList.map((e) => ((e['revenueUsd'] as num?)?.toDouble() ?? 0.0)).reduce((a, b) => a > b ? a : b) * 1.3,
+                      maxY: chartMaxY,
                       barTouchData: BarTouchData(
                         touchTooltipData: BarTouchTooltipData(
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
