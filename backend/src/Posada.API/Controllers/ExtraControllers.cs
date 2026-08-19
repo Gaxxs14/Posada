@@ -24,7 +24,7 @@ public class ExperiencesController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateExperienceRequest request)
     {
@@ -32,7 +32,7 @@ public class ExperiencesController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {

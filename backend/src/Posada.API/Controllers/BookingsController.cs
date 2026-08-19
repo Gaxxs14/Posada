@@ -53,7 +53,7 @@ public class BookingsController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] BookingStatus? status, [FromQuery] DateTime? date)
     {
@@ -76,7 +76,7 @@ public class BookingsController : ControllerBase
         return result.Success ? Ok(result) : NotFound(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpPatch("{id:guid}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateBookingStatusRequest request)
     {
@@ -87,7 +87,7 @@ public class BookingsController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpPost("{id:guid}/check-in")]
     public async Task<IActionResult> CheckIn(Guid id)
     {
@@ -98,7 +98,7 @@ public class BookingsController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpPost("{id:guid}/check-out")]
     public async Task<IActionResult> CheckOut(Guid id)
     {
@@ -109,7 +109,7 @@ public class BookingsController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpPost("{id:guid}/payments")]
     public async Task<IActionResult> AddPayment(Guid id, [FromBody] ProcessPaymentRequest request)
     {
@@ -120,7 +120,7 @@ public class BookingsController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpPost("{id:guid}/extra-charges")]
     public async Task<IActionResult> AddExtraCharge(Guid id, [FromBody] AddExtraChargeRequest request)
     {

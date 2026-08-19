@@ -31,7 +31,7 @@ public class RoomsController : ControllerBase
         return result.Success ? Ok(result) : NotFound(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateRoomRequest request)
     {
@@ -39,7 +39,7 @@ public class RoomsController : ControllerBase
         return result.Success ? CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result) : BadRequest(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoomRequest request)
     {
@@ -47,7 +47,7 @@ public class RoomsController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist,Housekeeping")]
+    [Authorize]
     [HttpPatch("{id:guid}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateRoomStatusRequest request)
     {
@@ -55,7 +55,7 @@ public class RoomsController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {

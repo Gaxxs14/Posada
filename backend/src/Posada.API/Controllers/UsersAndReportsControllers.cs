@@ -6,7 +6,7 @@ using Posada.Domain.Enums;
 
 namespace Posada.API.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
@@ -54,7 +54,7 @@ public class UsersController : ControllerBase
     }
 }
 
-[Authorize(Roles = "Admin,Receptionist")]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ReportsController : ControllerBase

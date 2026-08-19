@@ -23,7 +23,7 @@ public class SettingsController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [HttpPut]
     public async Task<IActionResult> UpdateSettings([FromBody] UpdateHotelSettingRequest request)
     {
@@ -31,7 +31,7 @@ public class SettingsController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize]
     [HttpPatch("exchange-rate")]
     public async Task<IActionResult> UpdateExchangeRate([FromBody] decimal newRate)
     {
